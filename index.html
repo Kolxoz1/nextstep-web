@@ -6,142 +6,131 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
-  --bg1:#0b1220;
-  --bg2:#070b14;
+  --bg:#0b1220;
   --card:#141b2f;
   --accent:#4f8cff;
-  --text:#fff;
   --muted:#9aa4c1;
 }
 body{
   margin:0;
-  background:linear-gradient(180deg,var(--bg1),var(--bg2));
-  color:var(--text);
-  font-family:system-ui,-apple-system;
+  background:linear-gradient(180deg,#0b1220,#070b14);
+  color:#fff;
+  font-family:system-ui;
   padding:16px;
 }
-h1{margin:6px 0 12px;font-size:26px}
+h1{margin:4px 0 12px}
 input,button{
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:none;
-  margin-bottom:10px;
-  font-size:15px;
+  width:100%;padding:14px;border-radius:16px;border:none;margin-bottom:10px;
 }
-input{
-  background:#fff;
-  color:#000;
-}
-button{
-  background:var(--accent);
-  color:#fff;
-  font-weight:600;
-}
-.menu button{
-  background:var(--card);
-}
+button{background:var(--accent);color:white;font-weight:600}
+.menu button{background:var(--card)}
 .card{
   background:var(--card);
   padding:14px;
   border-radius:16px;
   margin-bottom:8px;
-  cursor:pointer;
 }
-.footer{
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
-  margin-top:30px;
-}
+.stat{color:var(--muted);font-size:14px}
 </style>
 </head>
 
 <body>
 <h1>NextStep</h1>
 
-<input id="task" placeholder="Например: купить молоко">
+<input id="task" placeholder="Новая задача">
 <button onclick="addTask()">➕ Add</button>
 
 <div class="menu">
   <button onclick="load('inbox')">📥 Inbox</button>
   <button onclick="load('today')">📅 Today</button>
   <button onclick="load('focus')">🎯 Focus</button>
-  <button onclick="openReview()">📝 Review</button>
-  <button onclick="openHabits()">🔁 Habits</button>
+  <button onclick="ai()">🤖 AI Plan</button>
+  <button onclick="stats()">📊 Stats</button>
+  <button onclick="review()">📝 Review</button>
+  <button onclick="habits()">🔁 Habits</button>
 </div>
 
 <div id="list"></div>
 
-<div class="footer">@NextStepPlannerBot</div>
-
 <script>
-const tg = Telegram.WebApp;
-tg.ready();
+const tg = Telegram.WebApp; tg.ready();
+let current="inbox";
 
-let current = "inbox";
-
-function send(data){
-  tg.sendData(JSON.stringify(data));
-}
+function send(d){tg.sendData(JSON.stringify(d))}
 
 function addTask(){
-  if(!task.value.trim())return;
-  send({action:"add_task",title:task.value});
-  task.value="";
+ if(!task.value.trim())return;
+ send({action:"add_task",title:task.value});
+ task.value="";
 }
 
-function load(status){
-  current=status;
-  send({action:"get_tasks",status});
+function load(s){
+ current=s;
+ send({action:"get_tasks",status:s});
 }
 
-tg.onEvent("message",msg=>{
-  try{
-    const data=JSON.parse(msg.text);
-    list.innerHTML="";
-    if(data.tasks){
-      data.tasks.forEach(t=>{
-        const c=document.createElement("div");
-        c.className="card";
-        c.innerText=t;
-        c.onclick=()=>move(t);
-        list.appendChild(c);
-      });
+tg.onEvent("message",m=>{
+ try{
+  const d=JSON.parse(m.text);
+  list.innerHTML="";
+  if(d.tasks){
+    d.tasks.forEach(t=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerText=t;
+      c.onclick=()=>move(t);
+      list.appendChild(c);
+    })
+  }
+  if(d.habits){
+    d.habits.forEach(h=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
+      c.onclick=()=>send({action:"toggle_habit",title:h[0]});
+      list.appendChild(c);
+    })
+  }
+  if(d.stats){
+    for(const k in d.stats){
+      const s=document.createElement("div");
+      s.className="stat";
+      s.innerText=`${k}: ${d.stats[k]}`;
+      list.appendChild(s);
     }
-    if(data.habits){
-      data.habits.forEach(h=>{
-        const c=document.createElement("div");
-        c.className="card";
-        c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
-        c.onclick=()=>send({action:"toggle_habit",title:h[0]});
-        list.appendChild(c);
-      });
-    }
-  }catch{}
+  }
+  if(d.ai){
+    d.ai.forEach(t=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerText="⭐ "+t;
+      list.appendChild(c);
+    })
+  }
+ }catch{}
 });
 
 function move(title){
-  const flow={inbox:"today",today:"focus",focus:"done"};
-  if(flow[current]){
-    send({action:"move_task",title,to:flow[current]});
-    load(current);
-  }
+ const flow={inbox:"today",today:"focus",focus:"done"};
+ if(flow[current]){
+  send({action:"move_task",title,to:flow[current]});
+  load(current);
+ }
 }
 
-function openReview(){
-  const t=prompt(
-    "Review дня:\n\n1. Что сделал?\n2. Что было важно?\n3. Что дальше?"
-  );
-  if(t)send({action:"save_review",text:t});
+function review(){
+ const t=prompt("Review:\n1. Что сделал?\n2. Что важно?\n3. Что дальше?");
+ if(t)send({action:"save_review",text:t});
 }
 
-function openHabits(){
-  list.innerHTML="";
-  const t=prompt("Новая привычка:");
-  if(t)send({action:"add_habit",title:t});
-  send({action:"get_habits"});
+function habits(){
+ const t=prompt("Новая привычка:");
+ if(t)send({action:"add_habit",title:t});
+ send({action:"get_habits"});
 }
+
+function stats(){ send({action:"stats"}) }
+function ai(){ send({action:"ai_plan"}) }
 </script>
 </body>
 </html>
