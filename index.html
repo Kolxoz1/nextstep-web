@@ -1,50 +1,108 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NextStep</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body { background:#0b1220; color:#fff; font-family:sans-serif; margin:0; }
-    .wrap { padding:16px; }
-    input, button { padding:12px; border-radius:12px; border:none; }
-    input { width:100%; margin-bottom:10px; }
-    button { width:100%; background:#4b8bff; color:white; font-weight:bold; }
-    .row { display:flex; gap:8px; margin-top:10px; }
-  </style>
+<meta charset="utf-8">
+<title>NextStep</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+body{
+  background:linear-gradient(180deg,#0b1220,#070b14);
+  color:#fff;
+  font-family:system-ui;
+  padding:16px;
+}
+h2{margin:6px 0 10px}
+input,button{
+  width:100%;padding:12px;border-radius:14px;border:none;margin:6px 0;
+}
+button{background:#4f8cff;color:white;font-weight:600}
+.tab{background:#1b2338}
+.card{
+  background:#151c2e;
+  padding:10px;
+  border-radius:12px;
+  margin-bottom:6px;
+}
+.small{font-size:13px;opacity:.7}
+</style>
 </head>
+
 <body>
-<div class="wrap">
-  <h2>NextStep</h2>
+<h2>NextStep</h2>
 
-  <input id="task" placeholder="Например: купить молоко" />
-  <button onclick="add()">➕ Add</button>
+<input id="task" placeholder="Например: купить молоко">
+<button onclick="addTask()">➕ Add</button>
 
-  <div class="row">
-    <button onclick="cmd('today')">📅 Today</button>
-    <button onclick="cmd('inbox')">📥 Inbox</button>
-  </div>
-</div>
+<button class="tab" onclick="load('inbox')">📥 Inbox</button>
+<button class="tab" onclick="load('today')">📅 Today</button>
+<button class="tab" onclick="load('focus')">🎯 Focus</button>
+<button class="tab" onclick="openReview()">📝 Review</button>
+<button class="tab" onclick="openHabits()">🔁 Habits</button>
+
+<div id="list"></div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.ready();
+const tg=Telegram.WebApp;tg.ready();
+let current="inbox";
 
-  function send(data) {
-    tg.sendData(JSON.stringify(data));
-  }
+function send(d){tg.sendData(JSON.stringify(d))}
 
-  function add() {
-    const title = document.getElementById("task").value.trim();
-    if (!title) return;
-    send({ action: "add", title });
-    document.getElementById("task").value = "";
-  }
+function addTask(){
+ if(!task.value.trim())return;
+ send({action:"add_task",title:task.value});
+ task.value="";
+}
 
-  function cmd(name) {
-    send({ action: "command", name });
+function load(s){
+ current=s;
+ send({action:"get_tasks",status:s});
+}
+
+tg.onEvent("message",m=>{
+ try{
+  const d=JSON.parse(m.text);
+  list.innerHTML="";
+  if(d.tasks){
+    d.tasks.forEach(t=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerText=t;
+      c.onclick=()=>move(t);
+      list.appendChild(c);
+    })
   }
+  if(d.habits){
+    d.habits.forEach(h=>{
+      const c=document.createElement("div");
+      c.className="card";
+      c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
+      c.onclick=()=>send({action:"toggle_habit",title:h[0]});
+      list.appendChild(c);
+    })
+  }
+ }catch{}
+})
+
+function move(title){
+ const flow={inbox:"today",today:"focus",focus:"done"};
+ if(flow[current])
+   send({action:"move_task",title,to:flow[current]});
+ load(current);
+}
+
+function openReview(){
+ const t=prompt(
+  "Review:\n1. Что сделал?\n2. Что важно?\n3. Что дальше?"
+ );
+ if(t)send({action:"save_review",text:t});
+}
+
+function openHabits(){
+ list.innerHTML="";
+ const t=prompt("Новая привычка:");
+ if(t)send({action:"add_habit",title:t});
+ send({action:"get_habits"});
+}
 </script>
 </body>
 </html>
