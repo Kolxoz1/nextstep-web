@@ -5,103 +5,142 @@
 <title>NextStep</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
+:root{
+  --bg1:#0b1220;
+  --bg2:#070b14;
+  --card:#141b2f;
+  --accent:#4f8cff;
+  --text:#fff;
+  --muted:#9aa4c1;
+}
 body{
-  background:linear-gradient(180deg,#0b1220,#070b14);
-  color:#fff;
-  font-family:system-ui;
+  margin:0;
+  background:linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:var(--text);
+  font-family:system-ui,-apple-system;
   padding:16px;
 }
-h2{margin:6px 0 10px}
+h1{margin:6px 0 12px;font-size:26px}
 input,button{
-  width:100%;padding:12px;border-radius:14px;border:none;margin:6px 0;
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  margin-bottom:10px;
+  font-size:15px;
 }
-button{background:#4f8cff;color:white;font-weight:600}
-.tab{background:#1b2338}
+input{
+  background:#fff;
+  color:#000;
+}
+button{
+  background:var(--accent);
+  color:#fff;
+  font-weight:600;
+}
+.menu button{
+  background:var(--card);
+}
 .card{
-  background:#151c2e;
-  padding:10px;
-  border-radius:12px;
-  margin-bottom:6px;
+  background:var(--card);
+  padding:14px;
+  border-radius:16px;
+  margin-bottom:8px;
+  cursor:pointer;
 }
-.small{font-size:13px;opacity:.7}
+.footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  margin-top:30px;
+}
 </style>
 </head>
 
 <body>
-<h2>NextStep</h2>
+<h1>NextStep</h1>
 
 <input id="task" placeholder="Например: купить молоко">
 <button onclick="addTask()">➕ Add</button>
 
-<button class="tab" onclick="load('inbox')">📥 Inbox</button>
-<button class="tab" onclick="load('today')">📅 Today</button>
-<button class="tab" onclick="load('focus')">🎯 Focus</button>
-<button class="tab" onclick="openReview()">📝 Review</button>
-<button class="tab" onclick="openHabits()">🔁 Habits</button>
+<div class="menu">
+  <button onclick="load('inbox')">📥 Inbox</button>
+  <button onclick="load('today')">📅 Today</button>
+  <button onclick="load('focus')">🎯 Focus</button>
+  <button onclick="openReview()">📝 Review</button>
+  <button onclick="openHabits()">🔁 Habits</button>
+</div>
 
 <div id="list"></div>
 
-<script>
-const tg=Telegram.WebApp;tg.ready();
-let current="inbox";
+<div class="footer">@NextStepPlannerBot</div>
 
-function send(d){tg.sendData(JSON.stringify(d))}
+<script>
+const tg = Telegram.WebApp;
+tg.ready();
+
+let current = "inbox";
+
+function send(data){
+  tg.sendData(JSON.stringify(data));
+}
 
 function addTask(){
- if(!task.value.trim())return;
- send({action:"add_task",title:task.value});
- task.value="";
+  if(!task.value.trim())return;
+  send({action:"add_task",title:task.value});
+  task.value="";
 }
 
-function load(s){
- current=s;
- send({action:"get_tasks",status:s});
+function load(status){
+  current=status;
+  send({action:"get_tasks",status});
 }
 
-tg.onEvent("message",m=>{
- try{
-  const d=JSON.parse(m.text);
-  list.innerHTML="";
-  if(d.tasks){
-    d.tasks.forEach(t=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerText=t;
-      c.onclick=()=>move(t);
-      list.appendChild(c);
-    })
-  }
-  if(d.habits){
-    d.habits.forEach(h=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
-      c.onclick=()=>send({action:"toggle_habit",title:h[0]});
-      list.appendChild(c);
-    })
-  }
- }catch{}
-})
+tg.onEvent("message",msg=>{
+  try{
+    const data=JSON.parse(msg.text);
+    list.innerHTML="";
+    if(data.tasks){
+      data.tasks.forEach(t=>{
+        const c=document.createElement("div");
+        c.className="card";
+        c.innerText=t;
+        c.onclick=()=>move(t);
+        list.appendChild(c);
+      });
+    }
+    if(data.habits){
+      data.habits.forEach(h=>{
+        const c=document.createElement("div");
+        c.className="card";
+        c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
+        c.onclick=()=>send({action:"toggle_habit",title:h[0]});
+        list.appendChild(c);
+      });
+    }
+  }catch{}
+});
 
 function move(title){
- const flow={inbox:"today",today:"focus",focus:"done"};
- if(flow[current])
-   send({action:"move_task",title,to:flow[current]});
- load(current);
+  const flow={inbox:"today",today:"focus",focus:"done"};
+  if(flow[current]){
+    send({action:"move_task",title,to:flow[current]});
+    load(current);
+  }
 }
 
 function openReview(){
- const t=prompt(
-  "Review:\n1. Что сделал?\n2. Что важно?\n3. Что дальше?"
- );
- if(t)send({action:"save_review",text:t});
+  const t=prompt(
+    "Review дня:\n\n1. Что сделал?\n2. Что было важно?\n3. Что дальше?"
+  );
+  if(t)send({action:"save_review",text:t});
 }
 
 function openHabits(){
- list.innerHTML="";
- const t=prompt("Новая привычка:");
- if(t)send({action:"add_habit",title:t});
- send({action:"get_habits"});
+  list.innerHTML="";
+  const t=prompt("Новая привычка:");
+  if(t)send({action:"add_habit",title:t});
+  send({action:"get_habits"});
 }
 </script>
 </body>
