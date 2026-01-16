@@ -1,136 +1,415 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<title>NextStep</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-:root{
-  --bg:#0b1220;
-  --card:#141b2f;
-  --accent:#4f8cff;
-  --muted:#9aa4c1;
-}
-body{
-  margin:0;
-  background:linear-gradient(180deg,#0b1220,#070b14);
-  color:#fff;
-  font-family:system-ui;
-  padding:16px;
-}
-h1{margin:4px 0 12px}
-input,button{
-  width:100%;padding:14px;border-radius:16px;border:none;margin-bottom:10px;
-}
-button{background:var(--accent);color:white;font-weight:600}
-.menu button{background:var(--card)}
-.card{
-  background:var(--card);
-  padding:14px;
-  border-radius:16px;
-  margin-bottom:8px;
-}
-.stat{color:var(--muted);font-size:14px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#5B21B6">
+    <title>NextStep - Умный планировщик задач</title>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Loading animation */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #5B21B6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-
 <body>
-<h1>NextStep</h1>
+    <div id="root">
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(to bottom right, #EEF2FF, #F3E8FF, #FCE7F3);">
+            <div style="text-align: center;">
+                <div class="loader" style="margin: 0 auto 20px;"></div>
+                <p style="color: #6B7280; font-size: 14px;">Загрузка NextStep...</p>
+            </div>
+        </div>
+    </div>
 
-<input id="task" placeholder="Новая задача">
-<button onclick="addTask()">➕ Add</button>
+    <script>
+        const { useState, useEffect, createElement: e } = React;
+        
+        // Icons (simplified inline versions)
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const icons = {
+                plus: "M12 5v14m-7-7h14",
+                check: "M5 13l4 4L19 7",
+                x: "M18 6L6 18M6 6l12 12",
+                calendar: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+                clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            };
+            
+            return e('svg', {
+                width: size,
+                height: size,
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: 2,
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                className
+            }, e('path', { d: icons[name] || icons.check }));
+        };
 
-<div class="menu">
-  <button onclick="load('inbox')">📥 Inbox</button>
-  <button onclick="load('today')">📅 Today</button>
-  <button onclick="load('focus')">🎯 Focus</button>
-  <button onclick="ai()">🤖 AI Plan</button>
-  <button onclick="stats()">📊 Stats</button>
-  <button onclick="review()">📝 Review</button>
-  <button onclick="habits()">🔁 Habits</button>
-</div>
+        function NextStepApp() {
+            const [view, setView] = useState('inbox');
+            const [tasks, setTasks] = useState([]);
+            const [habits, setHabits] = useState([]);
+            const [newTask, setNewTask] = useState('');
+            const [showAddTask, setShowAddTask] = useState(false);
+            const [showAddHabit, setShowAddHabit] = useState(false);
+            const [pomodoroTime, setPomodoroTime] = useState(25 * 60);
+            const [pomodoroActive, setPomodoroActive] = useState(false);
 
-<div id="list"></div>
+            const tg = window.Telegram?.WebApp;
 
-<script>
-const tg = Telegram.WebApp; tg.ready();
-let current="inbox";
+            useEffect(() => {
+                if (tg) {
+                    tg.ready();
+                    tg.expand();
+                    tg.setHeaderColor('#5B21B6');
+                    tg.setBackgroundColor('#F9FAFB');
+                }
+                
+                // Load demo data
+                setTasks([
+                    { id: 1, text: 'Проверить почту', completed: false, status: 'inbox', priority: 'high', date: new Date().toISOString().split('T')[0] },
+                    { id: 2, text: 'Написать отчет', completed: false, status: 'today', priority: 'medium', date: new Date().toISOString().split('T')[0] },
+                    { id: 3, text: 'Позвонить клиенту', completed: true, status: 'review', priority: 'high', date: new Date().toISOString().split('T')[0] }
+                ]);
+                
+                setHabits([
+                    { id: 1, title: 'Утренняя зарядка', icon: '💪', streak: 5, lastDone: null },
+                    { id: 2, title: 'Читать 30 минут', icon: '📚', streak: 3, lastDone: null },
+                    { id: 3, title: 'Медитация', icon: '🧘', streak: 7, lastDone: null }
+                ]);
+            }, []);
 
-function send(d){tg.sendData(JSON.stringify(d))}
+            useEffect(() => {
+                if (pomodoroActive && pomodoroTime > 0) {
+                    const timer = setTimeout(() => setPomodoroTime(pomodoroTime - 1), 1000);
+                    return () => clearTimeout(timer);
+                } else if (pomodoroActive && pomodoroTime === 0) {
+                    setPomodoroActive(false);
+                    if (tg) tg.showAlert('🎉 Помодоро завершен! Отличная работа!');
+                }
+            }, [pomodoroActive, pomodoroTime]);
 
-function addTask(){
- if(!task.value.trim())return;
- send({action:"add_task",title:task.value});
- task.value="";
-}
+            const sendData = (data) => {
+                if (tg) {
+                    tg.sendData(JSON.stringify(data));
+                }
+            };
 
-function load(s){
- current=s;
- send({action:"get_tasks",status:s});
-}
+            const addTask = (priority = 'medium') => {
+                if (newTask.trim()) {
+                    const task = {
+                        id: Date.now(),
+                        text: newTask,
+                        completed: false,
+                        status: view === 'inbox' || view === 'today' || view === 'focus' ? view : 'inbox',
+                        date: new Date().toISOString().split('T')[0],
+                        priority
+                    };
+                    
+                    setTasks([...tasks, task]);
+                    sendData({ action: 'add_task', title: newTask, priority, date: task.date });
+                    setNewTask('');
+                    setShowAddTask(false);
+                }
+            };
 
-tg.onEvent("message",m=>{
- try{
-  const d=JSON.parse(m.text);
-  list.innerHTML="";
-  if(d.tasks){
-    d.tasks.forEach(t=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerText=t;
-      c.onclick=()=>move(t);
-      list.appendChild(c);
-    })
-  }
-  if(d.habits){
-    d.habits.forEach(h=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerText=(h[1]?"✅ ":"⬜ ")+h[0];
-      c.onclick=()=>send({action:"toggle_habit",title:h[0]});
-      list.appendChild(c);
-    })
-  }
-  if(d.stats){
-    for(const k in d.stats){
-      const s=document.createElement("div");
-      s.className="stat";
-      s.innerText=`${k}: ${d.stats[k]}`;
-      list.appendChild(s);
-    }
-  }
-  if(d.ai){
-    d.ai.forEach(t=>{
-      const c=document.createElement("div");
-      c.className="card";
-      c.innerText="⭐ "+t;
-      list.appendChild(c);
-    })
-  }
- }catch{}
-});
+            const toggleTask = (id) => {
+                setTasks(tasks.map(t => 
+                    t.id === id ? { ...t, completed: !t.completed } : t
+                ));
+                sendData({ action: 'complete_task', task_id: id });
+            };
 
-function move(title){
- const flow={inbox:"today",today:"focus",focus:"done"};
- if(flow[current]){
-  send({action:"move_task",title,to:flow[current]});
-  load(current);
- }
-}
+            const deleteTask = (id) => {
+                setTasks(tasks.filter(t => t.id !== id));
+                sendData({ action: 'delete_task', task_id: id });
+            };
 
-function review(){
- const t=prompt("Review:\n1. Что сделал?\n2. Что важно?\n3. Что дальше?");
- if(t)send({action:"save_review",text:t});
-}
+            const checkHabit = (id) => {
+                const today = new Date().toDateString();
+                setHabits(habits.map(h => {
+                    if (h.id === id && h.lastDone !== today) {
+                        sendData({ action: 'check_habit', habit_id: id });
+                        return { ...h, streak: h.streak + 1, lastDone: today };
+                    }
+                    return h;
+                }));
+            };
 
-function habits(){
- const t=prompt("Новая привычка:");
- if(t)send({action:"add_habit",title:t});
- send({action:"get_habits"});
-}
+            const filteredTasks = tasks.filter(task => {
+                if (view === 'inbox') return task.status === 'inbox' && !task.completed;
+                if (view === 'today') return task.status === 'today' && !task.completed;
+                if (view === 'focus') return task.status === 'focus' && !task.completed;
+                if (view === 'review') return task.completed;
+                return true;
+            });
 
-function stats(){ send({action:"stats"}) }
-function ai(){ send({action:"ai_plan"}) }
-</script>
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Render
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50' },
+                // Header
+                e('div', { className: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 shadow-lg sticky top-0 z-50' },
+                    e('div', { className: 'flex items-center justify-between mb-4' },
+                        e('div', null,
+                            e('h1', { className: 'text-2xl font-bold' }, 'NextStep'),
+                            e('p', { className: 'text-indigo-100 text-sm' }, 
+                                new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+                            )
+                        ),
+                        e('div', { className: 'bg-white/20 backdrop-blur-sm rounded-full px-4 py-2' },
+                            e('span', { className: 'text-sm font-semibold' }, 
+                                `${filteredTasks.filter(t => !t.completed).length} задач`
+                            )
+                        )
+                    ),
+                    // Navigation
+                    e('div', { className: 'flex gap-2 overflow-x-auto pb-2 scrollbar-hide' },
+                        [
+                            { id: 'inbox', icon: '📥', label: 'Inbox' },
+                            { id: 'today', icon: '📅', label: 'Today' },
+                            { id: 'focus', icon: '🎯', label: 'Focus' },
+                            { id: 'review', icon: '📋', label: 'Review' },
+                            { id: 'habits', icon: '✨', label: 'Привычки' },
+                            { id: 'pomodoro', icon: '⏰', label: 'Помодоро' },
+                            { id: 'stats', icon: '📊', label: 'Статистика' }
+                        ].map(item => 
+                            e('button', {
+                                key: item.id,
+                                onClick: () => setView(item.id),
+                                className: `flex items-center gap-2 px-4 py-2 rounded-full transition-all whitespace-nowrap ${
+                                    view === item.id 
+                                        ? 'bg-white text-indigo-600 shadow-lg' 
+                                        : 'bg-white/20 text-white hover:bg-white/30'
+                                }`
+                            },
+                                e('span', null, item.icon),
+                                e('span', { className: 'text-sm font-medium' }, item.label)
+                            )
+                        )
+                    )
+                ),
+
+                // Main Content
+                e('div', { className: 'p-4 pb-24' },
+                    // Tasks view
+                    ['inbox', 'today', 'focus', 'review'].includes(view) && e('div', null,
+                        e('div', { className: 'flex items-center justify-between mb-4' },
+                            e('h2', { className: 'text-xl font-bold text-gray-800' },
+                                view === 'inbox' ? '📥 Входящие' :
+                                view === 'today' ? '📅 Сегодня' :
+                                view === 'focus' ? '🎯 В фокусе' : '📋 Завершенные'
+                            ),
+                            e('button', {
+                                onClick: () => setShowAddTask(true),
+                                className: 'bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2'
+                            },
+                                e(Icon, { name: 'plus', size: 18 }),
+                                e('span', { className: 'text-sm font-medium' }, 'Добавить')
+                            )
+                        ),
+                        filteredTasks.length > 0 ? 
+                            filteredTasks.map(task =>
+                                e('div', { 
+                                    key: task.id,
+                                    className: 'bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all mb-3'
+                                },
+                                    e('div', { className: 'flex items-start gap-3' },
+                                        e('button', {
+                                            onClick: () => toggleTask(task.id),
+                                            className: `mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                                            }`
+                                        },
+                                            task.completed && e(Icon, { name: 'check', size: 14, className: 'text-white' })
+                                        ),
+                                        e('div', { className: 'flex-1' },
+                                            e('p', { 
+                                                className: `font-medium ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`
+                                            }, task.text),
+                                            e('div', { className: 'flex items-center gap-2 mt-2' },
+                                                e('span', { 
+                                                    className: `text-xs px-2 py-1 rounded ${
+                                                        task.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-green-100 text-green-700'
+                                                    }`
+                                                }, 
+                                                    task.priority === 'high' ? '🔴 Важно' : 
+                                                    task.priority === 'medium' ? '🟡 Средне' : '🟢 Низко'
+                                                )
+                                            )
+                                        ),
+                                        e('button', {
+                                            onClick: () => deleteTask(task.id),
+                                            className: 'text-red-400 hover:text-red-600'
+                                        }, e(Icon, { name: 'x', size: 18 }))
+                                    )
+                                )
+                            ) :
+                            e('div', { className: 'text-center py-12' },
+                                e('p', { className: 'text-gray-500 text-lg' }, 'Задач нет')
+                            )
+                    ),
+
+                    // Habits view
+                    view === 'habits' && e('div', null,
+                        e('h2', { className: 'text-xl font-bold text-gray-800 mb-4' }, '✨ Привычки'),
+                        habits.map(habit => {
+                            const today = new Date().toDateString();
+                            const isDoneToday = habit.lastDone === today;
+                            
+                            return e('div', {
+                                key: habit.id,
+                                className: 'bg-white rounded-xl p-4 shadow-sm mb-3'
+                            },
+                                e('div', { className: 'flex items-center justify-between' },
+                                    e('div', { className: 'flex items-center gap-3' },
+                                        e('span', { className: 'text-3xl' }, habit.icon),
+                                        e('div', null,
+                                            e('p', { className: 'font-medium text-gray-800' }, habit.title),
+                                            e('p', { className: 'text-sm text-gray-500' }, `${habit.streak} дней подряд 🔥`)
+                                        )
+                                    ),
+                                    e('button', {
+                                        onClick: () => !isDoneToday && checkHabit(habit.id),
+                                        disabled: isDoneToday,
+                                        className: `w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                                            isDoneToday ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'
+                                        }`
+                                    }, e(Icon, { name: 'check', size: 24 }))
+                                )
+                            );
+                        })
+                    ),
+
+                    // Pomodoro view
+                    view === 'pomodoro' && e('div', { className: 'max-w-md mx-auto' },
+                        e('h2', { className: 'text-2xl font-bold text-gray-800 mb-6 text-center' }, '⏰ Помодоро'),
+                        e('div', { className: 'bg-white rounded-2xl shadow-xl p-8' },
+                            e('div', { className: 'flex flex-col items-center' },
+                                e('div', { className: 'w-64 h-64 rounded-full bg-gradient-to-br from-red-100 to-orange-100 flex items-center justify-center mb-6 shadow-inner' },
+                                    e('span', { className: 'text-6xl font-bold text-gray-800' }, formatTime(pomodoroTime))
+                                ),
+                                e('div', { className: 'flex gap-4 mb-6' },
+                                    e('button', {
+                                        onClick: () => setPomodoroActive(!pomodoroActive),
+                                        className: 'px-8 py-4 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl font-semibold'
+                                    }, pomodoroActive ? '⏸ Пауза' : '▶ Старт'),
+                                    e('button', {
+                                        onClick: () => {
+                                            setPomodoroTime(25 * 60);
+                                            setPomodoroActive(false);
+                                        },
+                                        className: 'px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-semibold'
+                                    }, '🔄 Сброс')
+                                )
+                            )
+                        )
+                    ),
+
+                    // Stats view
+                    view === 'stats' && e('div', null,
+                        e('h2', { className: 'text-2xl font-bold text-gray-800 mb-6' }, '📊 Статистика'),
+                        e('div', { className: 'grid grid-cols-2 gap-4' },
+                            e('div', { className: 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-4 shadow-lg' },
+                                e('p', { className: 'text-sm opacity-90 mb-1' }, 'Всего задач'),
+                                e('p', { className: 'text-3xl font-bold' }, tasks.length)
+                            ),
+                            e('div', { className: 'bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-4 shadow-lg' },
+                                e('p', { className: 'text-sm opacity-90 mb-1' }, 'Завершено'),
+                                e('p', { className: 'text-3xl font-bold' }, tasks.filter(t => t.completed).length)
+                            ),
+                            e('div', { className: 'bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-4 shadow-lg' },
+                                e('p', { className: 'text-sm opacity-90 mb-1' }, 'Привычки'),
+                                e('p', { className: 'text-3xl font-bold' }, habits.length)
+                            ),
+                            e('div', { className: 'bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-xl p-4 shadow-lg' },
+                                e('p', { className: 'text-sm opacity-90 mb-1' }, 'Max Streak'),
+                                e('p', { className: 'text-3xl font-bold' }, 
+                                    habits.length > 0 ? Math.max(...habits.map(h => h.streak)) + ' 🔥' : '0 🔥'
+                                )
+                            )
+                        )
+                    )
+                ),
+
+                // Add Task Modal
+                showAddTask && e('div', {
+                    className: 'fixed inset-0 bg-black/50 flex items-end justify-center z-50',
+                    onClick: () => setShowAddTask(false)
+                },
+                    e('div', {
+                        className: 'bg-white rounded-t-3xl p-6 w-full max-w-lg',
+                        onClick: (e) => e.stopPropagation()
+                    },
+                        e('h3', { className: 'text-xl font-bold text-gray-800 mb-4' }, '➕ Новая задача'),
+                        e('input', {
+                            type: 'text',
+                            value: newTask,
+                            onChange: (e) => setNewTask(e.target.value),
+                            onKeyPress: (e) => e.key === 'Enter' && addTask(),
+                            placeholder: 'Название задачи...',
+                            className: 'w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4',
+                            autoFocus: true
+                        }),
+                        e('div', { className: 'flex gap-2' },
+                            ['high', 'medium', 'low'].map(priority =>
+                                e('button', {
+                                    key: priority,
+                                    onClick: () => addTask(priority),
+                                    className: `flex-1 py-3 rounded-lg font-medium ${
+                                        priority === 'high' ? 'bg-red-50 text-red-700' :
+                                        priority === 'medium' ? 'bg-yellow-50 text-yellow-700' :
+                                        'bg-green-50 text-green-700'
+                                    }`
+                                },
+                                    priority === 'high' ? '🔴 Высокий' :
+                                    priority === 'medium' ? '🟡 Средний' : '🟢 Низкий'
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        // Mount app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(NextStepApp));
+    </script>
 </body>
 </html>
