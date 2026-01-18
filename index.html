@@ -544,3 +544,118 @@
                                     <h4 class="font-semibold text-sm text-gray-900">Управление задачами</h4>
                                     <p class="text-xs text-gray-600">Создавайте задачи и перемещайте их между статусами</p>
                                 </div>
+                            </div>
+                            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                                <span class="text-2xl">🎯</span>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-gray-900">Трекер привычек</h4>
+                                    <p class="text-xs text-gray-600">Отмечайте привычки каждый день и следите за серией</p
+
+                            </div>
+</div>
+                        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                            <span class="text-2xl">🛒</span>
+                            <div>
+                                <h4 class="font-semibold text-sm text-gray-900">Список покупок</h4>
+                                <p class="text-xs text-gray-600">AI рассчитает примерную стоимость ваших покупок</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="https://t.me/NextStepSupport" target="_blank">
+                        <button class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md mb-2">
+                            💬 ${this.tr('writeSupport')}
+                        </button>
+                    </a>
+                    <p class="text-xs text-gray-500 text-center">@NextStepSupport</p>
+                </div>
+            `;
+        }
+
+        renderSettings() {
+            return `
+                <div class="space-y-3">
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <p class="font-semibold mb-3 text-gray-900">${this.tr('language')}</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="app.changeLang('ru')" 
+                                class="py-3 rounded-xl font-semibold transition-all ${this.lang === 'ru' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
+                                🇷🇺 Русский
+                            </button>
+                            <button onclick="app.changeLang('en')" 
+                                class="py-3 rounded-xl font-semibold transition-all ${this.lang === 'en' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
+                                🇬🇧 English
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <p class="font-semibold mb-3 text-gray-900">${this.tr('theme')}</p>
+                        <button onclick="app.toggleTheme()" 
+                            class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg active:shadow-md">
+                            ${this.theme === 'light' ? '🌙 ' + this.tr('dark') : '☀️ ' + this.tr('light')}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderSubscription() {
+            const plans = [
+                {
+                    key: 'free',
+                    name: 'FREE',
+                    icon: '🆓',
+                    price: 'Бесплатно',
+                    features: ['До 50 задач', 'Базовые функции', 'Список покупок'],
+                    current: this.plan === 'free'
+                },
+                {
+                    key: 'premium',
+                    name: 'PREMIUM',
+                    icon: '⭐',
+                    price: '149₽/мес',
+                    features: ['Без лимитов', 'Расширенная статистика', 'AI расчет покупок', 'Темная тема'],
+                    current: this.plan === 'premium'
+                },
+                {
+                    key: 'pro',
+                    name: 'PRO',
+                    icon: '🏆',
+                    price: '219₽/мес',
+                    features: ['Всё из Premium', 'AI помощник', 'Интеграции', 'Приоритетная поддержка'],
+                    current: this.plan === 'pro'
+                }
+            ];
+            
+            return plans.map(p => `
+                <div class="bg-white rounded-xl p-4 border ${p.current ? 'border-purple-500 border-2 shadow-lg' : 'border-gray-100 shadow-sm'} mb-3">
+                    ${p.current ? '<div class="inline-block bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 shadow-md">✓ Текущий тариф</div>' : ''}
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-3xl">${p.icon}</span>
+                        <div>
+                            <h3 class="text-xl font-bold gradient-text">${p.name}</h3>
+                            <p class="text-sm text-gray-600 font-semibold">${p.price}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 mb-3">
+                        ${p.features.map(f => `
+                            <div class="flex items-center gap-2 text-sm text-gray-700">
+                                <span class="text-green-500 font-bold">✓</span>
+                                <span>${f}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${!p.current && p.key !== 'free' ? `
+                        <button class="w-full py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md">
+                            ${this.tr('subscribe')}
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('') + `<p class="text-xs text-gray-500 text-center mt-4">💳 Безопасная оплата через Telegram</p>`;
+        }
+    }
+
+    const app = new App();
+    window.app = app;
+</script>
+</body>
+</html>
