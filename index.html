@@ -10,14 +10,19 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f5f5f5;
+            background: #f8f9fa;
             overflow-x: hidden;
         }
         .dark-theme { background: #1a1a1a; color: #fff; }
         .dark-theme .bg-white { background: #2a2a2a !important; }
-        .dark-theme .text-gray-800 { color: #fff !important; }
+        .dark-theme .text-gray-900 { color: #fff !important; }
+        .dark-theme .text-gray-800 { color: #e5e5e5 !important; }
         .dark-theme .text-gray-600 { color: #aaa !important; }
-        .dark-theme .border-gray-100 { border-color: #3a3a3a !important; }
+        .dark-theme .text-gray-500 { color: #888 !important; }
+        .dark-theme .border-gray-200 { border-color: #3a3a3a !important; }
+        .dark-theme .border-gray-100 { border-color: #333 !important; }
+        .dark-theme .bg-gray-50 { background: #252525 !important; }
+        .dark-theme .bg-gray-100 { background: #333 !important; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .modal-backdrop { 
             position: fixed; inset: 0; 
@@ -28,36 +33,43 @@
         .modal-content { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: white; 
-            border-radius: 24px 24px 0 0; 
+            border-radius: 20px 20px 0 0; 
             z-index: 1000; 
             max-height: 85vh; 
             overflow-y: auto; 
-            padding: 24px;
+            padding: 20px;
             animation: slideUp 0.3s;
         }
         .dark-theme .modal-content { background: #2a2a2a; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .task-card:active { transform: scale(0.98); transition: 0.1s; }
+        .task-card { transition: all 0.2s; }
+        .task-card:active { transform: scale(0.98); }
         .floating-btn {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 20px;
+            right: 20px;
             width: 56px;
             height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
             color: white;
             cursor: pointer;
             z-index: 100;
             transition: 0.2s;
         }
         .floating-btn:active { transform: scale(0.9); }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +88,7 @@
                 inbox: 'Входящие', today: 'Сегодня', focus: 'Фокус', review: 'Готово',
                 habits: 'Привычки', stats: 'Статистика', subscription: 'Подписка',
                 support: 'Помощь', settings: 'Настройки', shopping: 'Покупки',
-                tasks: 'задач', noTasks: 'Нет задач', addTask: 'Добавить задачу',
+                tasks: 'задач', noTasks: 'Нет задач', addTask: 'Добавить',
                 newTask: 'Новая задача', priority: 'Приоритет',
                 high: 'Высокий', medium: 'Средний', low: 'Низкий', cancel: 'Отмена',
                 save: 'Сохранить', total: 'Всего', completed: 'Готово', 
@@ -85,11 +97,13 @@
                 helpText: 'Используйте приложение для управления задачами и привычками',
                 writeSupport: 'Написать в поддержку', free: 'FREE', premium: 'PREMIUM', pro: 'PRO',
                 features: 'Возможности', current: 'Текущий', subscribe: 'Оформить',
-                shoppingList: 'Список покупок', addItem: 'Добавить товар',
-                estimate: 'Рассчитать', enterItems: 'Введите список покупок',
+                shoppingList: 'Список покупок', addItem: 'Добавить товары',
+                estimate: 'Рассчитать стоимость', enterItems: 'Введите список покупок',
                 estimatedCost: 'Примерная стоимость',
                 noHabits: 'Нет привычек', addHabit: 'Добавить привычку',
-                streak: 'Серия', days: 'дней', checkIn: 'Отметить'
+                streak: 'Серия', days: 'дней', checkIn: 'Отметить',
+                newHabit: 'Новая привычка', habitName: 'Название привычки',
+                chooseIcon: 'Выберите иконку'
             }
         };
 
@@ -186,6 +200,12 @@
                 }
             }
 
+            deleteHabit(id) {
+                this.habits = this.habits.filter(h => h.id !== id);
+                localStorage.setItem('habits', JSON.stringify(this.habits));
+                this.render();
+            }
+
             changeLang(lang) {
                 this.lang = lang;
                 localStorage.setItem('lang', lang);
@@ -204,10 +224,10 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4">✨ ${this.tr('newTask')}</h3>
+                        <h3 class="text-xl font-bold mb-4 gradient-text">✨ ${this.tr('newTask')}</h3>
                         <input type="text" id="taskInput" placeholder="${this.tr('enterItems')}..." 
-                            class="w-full p-4 border rounded-xl mb-4 text-base focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <p class="text-sm font-semibold mb-3">${this.tr('priority')}:</p>
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base focus:outline-none focus:border-purple-500">
+                        <p class="text-sm font-semibold mb-3 text-gray-700">${this.tr('priority')}:</p>
                         <div class="grid grid-cols-3 gap-3 mb-4">
                             <button onclick="app.addFromModal('high')" 
                                 class="py-3 bg-red-500 text-white rounded-xl font-semibold active:bg-red-600">
@@ -223,7 +243,7 @@
                             </button>
                         </div>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
+                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -237,19 +257,20 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4">✨ ${this.tr('addHabit')}</h3>
-                        <input type="text" id="habitInput" placeholder="Название привычки..." 
-                            class="w-full p-4 border rounded-xl mb-4 text-base focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <h3 class="text-xl font-bold mb-4 gradient-text">✨ ${this.tr('newHabit')}</h3>
+                        <input type="text" id="habitInput" placeholder="${this.tr('habitName')}..." 
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base focus:outline-none focus:border-purple-500">
+                        <p class="text-sm font-semibold mb-3 text-gray-700">${this.tr('chooseIcon')}:</p>
                         <div class="grid grid-cols-4 gap-2 mb-4">
-                            ${['💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '🎯'].map(icon => `
+                            ${['💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '🎯', '🚴', '🎨', '✍️', '🎵'].map(icon => `
                                 <button onclick="app.addHabitFromModal('${icon}')" 
-                                    class="py-3 text-2xl bg-gray-100 rounded-xl active:bg-gray-200">
+                                    class="py-3 text-2xl bg-gray-50 rounded-xl active:bg-gray-100 border border-gray-200">
                                     ${icon}
                                 </button>
                             `).join('')}
                         </div>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
+                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -263,31 +284,38 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4">🛒 ${this.tr('shoppingList')}</h3>
-                        <textarea id="shoppingInput" placeholder="Хлеб\nМолоко\nЯйца\n..." 
-                            class="w-full p-4 border rounded-xl mb-4 text-base h-48 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                        <h3 class="text-xl font-bold mb-4 gradient-text">🛒 ${this.tr('shoppingList')}</h3>
+                        <p class="text-sm text-gray-600 mb-3">Введите товары (каждый с новой строки):</p>
+                        <textarea id="shoppingInput" placeholder="Хлеб\nМолоко\nЯйца\nМасло\n..." 
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base h-48 focus:outline-none focus:border-purple-500 resize-none"></textarea>
                         <button onclick="app.estimateShopping()" 
-                            class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold mb-2 active:from-purple-700 active:to-purple-800">
+                            class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold mb-2 active:from-purple-700 active:to-purple-800 shadow-lg">
                             💰 ${this.tr('estimate')}
                         </button>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
+                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
                             ${this.tr('cancel')}
                         </button>
                     </div>
                 `;
                 document.body.appendChild(modal);
+                setTimeout(() => document.getElementById('shoppingInput')?.focus(), 100);
             }
 
             estimateShopping() {
                 const input = document.getElementById('shoppingInput');
                 if (input?.value.trim()) {
-                    tg.sendData(JSON.stringify({
-                        action: 'estimate_shopping',
-                        items: input.value
-                    }));
-                    this.closeModal();
-                    tg.close();
+                    try {
+                        tg.sendData(JSON.stringify({
+                            action: 'estimate_shopping',
+                            items: input.value.trim()
+                        }));
+                        this.closeModal();
+                    } catch (e) {
+                        alert('Ошибка отправки данных. Попробуйте еще раз.');
+                    }
+                } else {
+                    alert('Введите хотя бы один товар');
                 }
             }
 
@@ -326,25 +354,26 @@
                 const completed = this.tasks.filter(t => t.completed).length;
                 
                 document.getElementById('root').innerHTML = `
-                    <div class="bg-white border-b sticky top-0 z-50 ${this.theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}">
+                    <div class="bg-white border-b border-gray-200 sticky top-0 z-50">
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-4">
                                 <div>
-                                    <h1 class="text-2xl font-bold text-gray-800">NextStep</h1>
-                                    <p class="text-sm text-gray-500">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
+                                    <h1 class="text-2xl font-bold gradient-text">NextStep</h1>
+                                    <p class="text-xs text-gray-500">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
                                 </div>
-                                <div class="flex gap-2">
-                                    <div class="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                                <div class="flex gap-2 items-center">
+                                    <div class="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 rounded-full text-xs font-bold">
                                         ${this.plan.toUpperCase()}
                                     </div>
+                                    ${tasks.length > 0 ? `<div class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">${tasks.length}</div>` : ''}
                                 </div>
                             </div>
                             <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-                                ${['today', 'inbox', 'focus', 'review', 'habits', 'shopping', 'stats', 'subscription', 'settings'].map(v => `
+                                ${['today', 'inbox', 'focus', 'review', 'habits', 'shopping', 'stats', 'subscription', 'support', 'settings'].map(v => `
                                     <button onclick="app.setView('${v}')" 
                                         class="px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all ${
                                             this.view === v 
-                                                ? 'bg-purple-600 text-white' 
+                                                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' 
                                                 : 'bg-gray-100 text-gray-700 active:bg-gray-200'
                                         }">
                                         ${this.tr(v)}
@@ -360,6 +389,7 @@
                           this.view === 'subscription' ? this.renderSubscription() :
                           this.view === 'habits' ? this.renderHabits() :
                           this.view === 'shopping' ? this.renderShopping() :
+                          this.view === 'support' ? this.renderSupport() :
                           this.renderTasks(tasks)}
                     </div>
 
@@ -377,30 +407,36 @@
 
             renderTasks(tasks) {
                 if (!tasks.length) {
+                    const emojis = {
+                        today: '📅',
+                        inbox: '📥',
+                        focus: '🎯',
+                        review: '✅'
+                    };
                     return `
                         <div class="text-center py-20">
-                            <div class="text-6xl mb-4">✨</div>
-                            <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('noTasks')}</p>
-                            <p class="text-gray-400 text-sm">Нажмите + чтобы добавить</p>
+                            <div class="text-6xl mb-4">${emojis[this.view] || '✨'}</div>
+                            <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('noTasks')}</p>
+                            <p class="text-sm text-gray-400">Нажмите кнопку + чтобы добавить</p>
                         </div>
                     `;
                 }
 
                 return tasks.map(t => `
-                    <div class="task-card bg-white rounded-xl p-4 mb-3 border border-gray-100">
+                    <div class="task-card bg-white rounded-xl p-4 mb-3 border border-gray-100 shadow-sm">
                         <div class="flex gap-3">
                             <button onclick="app.toggleTask(${t.id})" 
                                 class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                                     t.completed 
                                         ? 'bg-green-500 border-green-500' 
-                                        : 'border-gray-300'
+                                        : 'border-gray-300 hover:border-purple-500'
                                 }">
-                                ${t.completed ? '<span class="text-white text-sm">✓</span>' : ''}
+                                ${t.completed ? '<span class="text-white text-sm font-bold">✓</span>' : ''}
                             </button>
                             <div class="flex-1 min-w-0">
-                                <p class="font-medium text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-800'}">${t.text}</p>
-                                <div class="flex gap-2 mt-2 items-center">
-                                    <span class="text-xs px-2 py-1 rounded-full ${
+                                <p class="font-medium text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}">${t.text}</p>
+                                <div class="flex gap-2 mt-2 items-center flex-wrap">
+                                    <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${
                                         t.priority === 'high' ? 'bg-red-100 text-red-700' : 
                                         t.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
                                         'bg-green-100 text-green-700'
@@ -409,7 +445,7 @@
                                     </span>
                                     ${!t.completed ? `
                                         <select onchange="app.moveTask(${t.id}, this.value)" 
-                                            class="text-xs px-2 py-1 rounded-full bg-gray-100 border-none">
+                                            class="text-xs px-2 py-1 rounded-full bg-gray-50 border border-gray-200 font-medium text-gray-700">
                                             <option value="inbox" ${t.status === 'inbox' ? 'selected' : ''}>📥 Inbox</option>
                                             <option value="today" ${t.status === 'today' ? 'selected' : ''}>📅 Today</option>
                                             <option value="focus" ${t.status === 'focus' ? 'selected' : ''}>🎯 Focus</option>
@@ -417,7 +453,7 @@
                                     ` : ''}
                                 </div>
                             </div>
-                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 text-xl">×</button>
+                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 hover:text-red-600 text-xl font-bold">×</button>
                         </div>
                     </div>
                 `).join('');
@@ -428,8 +464,8 @@
                     return `
                         <div class="text-center py-20">
                             <div class="text-6xl mb-4">🎯</div>
-                            <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('noHabits')}</p>
-                            <p class="text-gray-400 text-sm">Нажмите + чтобы добавить</p>
+                            <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('noHabits')}</p>
+                            <p class="text-sm text-gray-400">Нажмите кнопку + чтобы добавить</p>
                         </div>
                     `;
                 }
@@ -439,21 +475,24 @@
                 return this.habits.map(h => {
                     const isDone = h.lastDone === today;
                     return `
-                        <div class="bg-white rounded-xl p-4 mb-3 border border-gray-100">
+                        <div class="bg-white rounded-xl p-4 mb-3 border border-gray-100 shadow-sm">
                             <div class="flex items-center gap-3">
                                 <div class="text-3xl">${h.icon}</div>
                                 <div class="flex-1">
-                                    <p class="font-medium text-gray-800">${h.text}</p>
-                                    <p class="text-xs text-gray-500">🔥 ${h.streak} ${this.tr('days')}</p>
+                                    <p class="font-semibold text-gray-900">${h.text}</p>
+                                    <p class="text-xs text-gray-500 mt-1">🔥 Серия: ${h.streak} ${this.tr('days')}</p>
                                 </div>
-                                <button onclick="app.checkHabit(${h.id})" 
-                                    class="px-4 py-2 rounded-lg font-semibold text-sm ${
-                                        isDone 
-                                            ? 'bg-green-100 text-green-700' 
-                                            : 'bg-purple-600 text-white active:bg-purple-700'
-                                    }" ${isDone ? 'disabled' : ''}>
-                                    ${isDone ? '✓ Готово' : this.tr('checkIn')}
-                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="app.checkHabit(${h.id})" 
+                                        class="px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                                            isDone 
+                                                ? 'bg-green-100 text-green-700' 
+                                                : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md active:shadow-sm'
+                                        }" ${isDone ? 'disabled' : ''}>
+                                        ${isDone ? '✓' : '✓'}
+                                    </button>
+                                    <button onclick="app.deleteHabit(${h.id})" class="text-red-400 hover:text-red-600 text-xl font-bold px-2">×</button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -464,10 +503,10 @@
                 return `
                     <div class="text-center py-20">
                         <div class="text-6xl mb-4">🛒</div>
-                        <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('shoppingList')}</p>
-                        <p class="text-gray-400 text-sm mb-6">Добавьте товары и получите примерную стоимость</p>
+                        <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('shoppingList')}</p>
+                        <p class="text-sm text-gray-500 mb-6">Добавьте товары и получите примерную стоимость с помощью AI</p>
                         <button onclick="app.showShoppingModal()" 
-                            class="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold active:bg-purple-700">
+                            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md">
                             ${this.tr('addItem')}
                         </button>
                     </div>
@@ -483,101 +522,65 @@
                             { icon: '🎯', label: this.tr('habits'), value: this.habits.length, color: 'purple' },
                             { icon: '🔥', label: 'Streak', value: Math.max(...this.habits.map(h => h.streak), 0), color: 'orange' }
                         ].map(s => `
-                            <div class="bg-white rounded-xl p-4 border border-gray-100">
-                                <div class="text-2xl mb-2">${s.icon}</div>
+                            <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                <div class="text-3xl mb-2">${s.icon}</div>
                                 <p class="text-xs text-gray-600 mb-1">${s.label}</p>
-                                <p class="text-2xl font-bold text-${s.color}-600">${s.value}</p>
+                                <p class="text-2xl font-bold gradient-text">${s.value}</p>
                             </div>
                         `).join('')}
                     </div>
+                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                        <h3 class="font-bold text-lg mb-3 text-gray-900">📈 Прогресс по дням</h3>
+                        <p class="text-sm text-gray-500 text-center py-8">Статистика появится после использования приложения</p>
+                    </div>
                 `;
             }
 
-            renderSettings() {
+            renderSupport() {
                 return `
-                    <div class="space-y-4">
-                        <div class="bg-white rounded-xl p-4 border border-gray-100">
-                            <p class="font-semibold mb-3 text-gray-800">${this.tr('language')}</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="app.changeLang('ru')" 
-                                    class="py-3 rounded-lg font-semibold ${this.lang === 'ru' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}">
-                                    🇷🇺 Русский
-                                </button>
-                                <button onclick="app.changeLang('en')" 
-                                    class="py-3 rounded-lg font-semibold ${this.lang === 'en' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}">
-                                    🇬🇧 English
-                                </button>
+                    <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <span class="text-4xl">💬</span>
                             </div>
+                            <h2 class="text-2xl font-bold mb-2 gradient-text">${this.tr('helpTitle')}</h2>
+                            <p class="text-gray-600 text-sm">${this.tr('helpText')}</p>
                         </div>
-                        <div class="bg-white rounded-xl p-4 border border-gray-100">
-                            <p class="font-semibold mb-3 text-gray-800">${this.tr('theme')}</p>
-                            <button onclick="app.toggleTheme()" 
-                                class="w-full py-3 rounded-lg font-semibold bg-purple-600 text-white active:bg-purple-700">
-                                ${this.theme === 'light' ? '🌙 ' + this.tr('dark') : '☀️ ' + this.tr('light')}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                                <span class="text-2xl">📋</span>
+                                <div>
+                                    <h4 class="font-semibold text-sm text-gray-900">Управление задачами</h4>
+                                    <p class="text-xs text-gray-600">
 
-            renderSubscription() {
-                const plans = [
-                    {
-                        key: 'free',
-                        name: 'FREE',
-                        icon: '🆓',
-                        price: 'Бесплатно',
-                        features: ['До 50 задач', 'Базовые функции'],
-                        current: this.plan === 'free'
-                    },
-                    {
-                        key: 'premium',
-                        name: 'PREMIUM',
-                        icon: '⭐',
-                        price: '149₽/мес',
-                        features: ['Без лимитов', 'Статистика', 'AI расчет'],
-                        current: this.plan === 'premium'
-                    },
-                    {
-                        key: 'pro',
-                        name: 'PRO',
-                        icon: '🏆',
-                        price: '219₽/мес',
-                        features: ['Всё из Premium', 'AI помощник', 'Интеграции'],
-                        current: this.plan === 'pro'
-                    }
-                ];
-                
-                return plans.map(p => `
-                    <div class="bg-white rounded-xl p-4 border ${p.current ? 'border-purple-500 border-2' : 'border-gray-100'} mb-3">
-                        ${p.current ? '<div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full mb-2">Текущий</div>' : ''}
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-3xl">${p.icon}</span>
-                            <div>
-                                <h3 class="text-xl font-bold text-gray-800">${p.name}</h3>
-                                <p class="text-sm text-gray-600">${p.price}</p>
-                            </div>
-                        </div>
-                        <div class="space-y-1 mb-3">
-                            ${p.features.map(f => `
-                                <div class="flex items-center gap-2 text-sm text-gray-700">
-                                    <span class="text-green-500">✓</span>
-                                    <span>${f}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        ${!p.current && p.key !== 'free' ? `
-                            <button class="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold active:bg-purple-700">
-                                ${this.tr('subscribe')}
-                            </button>
-                        ` : ''}
-                    </div>
-                `).join('');
-            }
-        }
+Создавайте задачи и перемещайте их между статусами</p>
+</div>
+</div>
 
-        const app = new App();
-        window.app = app;
-    </script>
-</body>
-</html>
+<div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+    <span class="text-2xl">🎯</span>
+    <div>
+        <h4 class="font-semibold text-sm text-gray-900">Трекер привычек</h4>
+        <p class="text-xs text-gray-600">Отмечайте привычки каждый день и следите за серией</p>
+    </div>
+</div>
+
+<div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+    <span class="text-2xl">🛒</span>
+    <div>
+        <h4 class="font-semibold text-sm text-gray-900">Список покупок</h4>
+        <p class="text-xs text-gray-600">AI рассчитает примерную стоимость ваших покупок</p>
+    </div>
+</div>
+</div>
+
+<a href="https://t.me/NextStepSupport" target="_blank">
+    <button class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md mb-2">
+        💬 ${this.tr('writeSupport')}
+    </button>
+</a>
+<p class="text-xs text-gray-500 text-center">@NextStepSupport</p>
+</div>
+`;
+}
