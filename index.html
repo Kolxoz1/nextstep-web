@@ -21,6 +21,15 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
+        tg.onEvent("message", (msg) => {
+    try {
+        const data = JSON.parse(msg.data);
+        if (data.action === "subscription") {
+            app.plan = data.plan;
+            app.render();
+        }
+    } catch {}
+});
         
         const t = {
             ru: {
@@ -56,6 +65,12 @@
         class App {
             constructor() {
                 this.view = 'inbox';
+                this.plan = 'free';
+
+tg.sendData(JSON.stringify({
+    action: "get_subscription"
+}));
+
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                 this.habits = JSON.parse(localStorage.getItem('habits') || '[]');
                 this.lang = localStorage.getItem('lang') || 'ru';
@@ -307,10 +322,34 @@
 
             renderSubscription() {
                 const plans = [
-                    { name: this.tr('free'), icon: '🆓', price: 0, features: ['До 50 задач', 'Базовые функции', 'Трекер привычек'], color: 'from-gray-400 to-gray-600', current: true },
-                    { name: this.tr('premium'), icon: '⭐', price: '149₽/мес', features: ['Неограниченные задачи', 'Расширенная статистика', 'Темы оформления', 'Приоритетная поддержка'], color: 'from-purple-500 to-pink-500' },
-                    { name: this.tr('pro'), icon: '🏆', price: '219₽/мес', features: ['Всё из Premium', 'AI-помощник', 'Интеграции', 'API доступ'], color: 'from-orange-500 to-red-600' }
-                ];
+  {
+    key: 'free',
+    name: this.tr('free'),
+    icon: '🆓',
+    price: 0,
+    features: ['До 50 задач', 'Базовые функции'],
+    color: 'from-gray-400 to-gray-600',
+    current: this.plan === 'free'
+  },
+  {
+    key: 'premium',
+    name: this.tr('premium'),
+    icon: '⭐',
+    price: '149₽/мес',
+    features: ['Без лимитов', 'Статистика'],
+    color: 'from-purple-500 to-pink-500',
+    current: this.plan === 'premium'
+  },
+  {
+    key: 'pro',
+    name: this.tr('pro'),
+    icon: '🏆',
+    price: '219₽/мес',
+    features: ['AI', 'Интеграции'],
+    color: 'from-orange-500 to-red-600',
+    current: this.plan === 'pro'
+  }
+];
                 
                 return plans.map(p => `
                     <div class="bg-white rounded-2xl p-6 shadow-lg border ${p.current ? 'border-purple-500 border-2' : 'border-gray-100'} mb-4">
