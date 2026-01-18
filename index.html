@@ -8,11 +8,56 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F8FAFC; overflow-x: hidden; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+        .dark-theme { background: #1a1a1a; color: #fff; }
+        .dark-theme .bg-white { background: #2a2a2a !important; }
+        .dark-theme .text-gray-800 { color: #fff !important; }
+        .dark-theme .text-gray-600 { color: #aaa !important; }
+        .dark-theme .border-gray-100 { border-color: #3a3a3a !important; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; }
-        .modal-content { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 24px 24px 0 0; z-index: 1000; max-height: 85vh; overflow-y: auto; padding: 24px; }
-        .task-card:active { transform: scale(0.98); transition: 0.2s; }
+        .modal-backdrop { 
+            position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 999;
+            animation: fadeIn 0.2s;
+        }
+        .modal-content { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: white; 
+            border-radius: 24px 24px 0 0; 
+            z-index: 1000; 
+            max-height: 85vh; 
+            overflow-y: auto; 
+            padding: 24px;
+            animation: slideUp 0.3s;
+        }
+        .dark-theme .modal-content { background: #2a2a2a; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .task-card:active { transform: scale(0.98); transition: 0.1s; }
+        .floating-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+            transition: 0.2s;
+        }
+        .floating-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
@@ -21,76 +66,68 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
-        // читаем тариф из URL ( ?plan=free / premium / pro )
-const params = new URLSearchParams(window.location.search);
-const planFromUrl = params.get('plan') || 'free';
+
+        const params = new URLSearchParams(window.location.search);
+        const planFromUrl = params.get('plan') || 'free';
+        const userIdFromUrl = params.get('user_id') || '';
 
         const t = {
             ru: {
-                inbox: 'Inbox', today: 'Сегодня', focus: 'Фокус', review: 'Готово',
+                inbox: 'Входящие', today: 'Сегодня', focus: 'Фокус', review: 'Готово',
                 habits: 'Привычки', stats: 'Статистика', subscription: 'Подписка',
-                support: 'Помощь', settings: 'Настройки', admin: 'Админ',
-                tasks: 'задач', noTasks: 'Задач нет', addTask: 'Добавить задачу',
+                support: 'Помощь', settings: 'Настройки', shopping: 'Покупки',
+                tasks: 'задач', noTasks: 'Нет задач', addTask: 'Добавить задачу',
                 newTask: 'Новая задача', priority: 'Приоритет',
                 high: 'Высокий', medium: 'Средний', low: 'Низкий', cancel: 'Отмена',
-                total: 'Всего', completed: 'Готово', language: 'Язык',
+                save: 'Сохранить', total: 'Всего', completed: 'Готово', 
+                language: 'Язык', theme: 'Тема', light: 'Светлая', dark: 'Темная',
                 russian: 'Русский', english: 'English', helpTitle: 'Помощь',
                 helpText: 'Используйте приложение для управления задачами и привычками',
                 writeSupport: 'Написать в поддержку', free: 'FREE', premium: 'PREMIUM', pro: 'PRO',
                 features: 'Возможности', current: 'Текущий', subscribe: 'Оформить',
-                securePayment: 'Безопасная оплата через Telegram'
-            },
-            en: {
-                inbox: 'Inbox', today: 'Today', focus: 'Focus', review: 'Done',
-                habits: 'Habits', stats: 'Stats', subscription: 'Premium',
-                support: 'Help', settings: 'Settings', admin: 'Admin',
-                tasks: 'tasks', noTasks: 'No tasks', addTask: 'Add task',
-                newTask: 'New task', priority: 'Priority',
-                high: 'High', medium: 'Medium', low: 'Low', cancel: 'Cancel',
-                total: 'Total', completed: 'Done', language: 'Language',
-                russian: 'Русский', english: 'English', helpTitle: 'Help',
-                helpText: 'Use app to manage tasks and habits',
-                writeSupport: 'Contact support', free: 'FREE', premium: 'PREMIUM', pro: 'PRO',
-                features: 'Features', current: 'Current', subscribe: 'Subscribe',
-                securePayment: 'Secure payment via Telegram'
+                shoppingList: 'Список покупок', addItem: 'Добавить товар',
+                estimate: 'Рассчитать', enterItems: 'Введите список покупок',
+                estimatedCost: 'Примерная стоимость',
+                noHabits: 'Нет привычек', addHabit: 'Добавить привычку',
+                streak: 'Серия', days: 'дней', checkIn: 'Отметить'
             }
         };
 
         class App {
             constructor() {
-                this.view = 'inbox';
+                this.view = 'today';
                 this.plan = planFromUrl;
+                this.userId = userIdFromUrl;
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                 this.habits = JSON.parse(localStorage.getItem('habits') || '[]');
                 this.lang = localStorage.getItem('lang') || 'ru';
-                this.isAdmin = tg.initDataUnsafe?.user?.id === 6245543040;
+                this.theme = localStorage.getItem('theme') || 'light';
                 this.init();
             }
 
-            tr(key) { return t[this.lang][key] || key; }
+            tr(key) { return t[this.lang]?.[key] || key; }
 
             init() {
-                tg.MainButton.setText(`➕ ${this.tr('addTask')}`);
-                tg.MainButton.onClick(() => this.showAddModal());
-                tg.MainButton.show();
-                tg.BackButton.onClick(() => this.setView('inbox'));
+                if (this.theme === 'dark') document.body.classList.add('dark-theme');
                 this.render();
             }
 
             setView(v) {
                 this.view = v;
-                v === 'inbox' ? tg.BackButton.hide() : tg.BackButton.show();
                 this.render();
             }
 
             addTask(text, priority = 'medium') {
-                if (!text) return;
+                if (!text.trim()) return;
                 this.tasks.unshift({
-                    id: Date.now(), text, priority, status: this.view,
-                    completed: false, date: new Date().toISOString().split('T')[0]
+                    id: Date.now(), 
+                    text: text.trim(), 
+                    priority, 
+                    status: 'today',
+                    completed: false, 
+                    date: new Date().toISOString().split('T')[0]
                 });
                 localStorage.setItem('tasks', JSON.stringify(this.tasks));
-                tg.sendData(JSON.stringify({ action: 'add_task', title: text, priority }));
                 this.render();
             }
 
@@ -118,33 +155,75 @@ const planFromUrl = params.get('plan') || 'free';
                 }
             }
 
+            addHabit(text, icon = '✅') {
+                if (!text.trim()) return;
+                this.habits.push({
+                    id: Date.now(),
+                    text: text.trim(),
+                    icon,
+                    streak: 0,
+                    lastDone: null
+                });
+                localStorage.setItem('habits', JSON.stringify(this.habits));
+                this.render();
+            }
+
+            checkHabit(id) {
+                const habit = this.habits.find(h => h.id === id);
+                if (habit) {
+                    const today = new Date().toISOString().split('T')[0];
+                    if (habit.lastDone === today) return;
+                    
+                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                    if (habit.lastDone === yesterday) {
+                        habit.streak++;
+                    } else {
+                        habit.streak = 1;
+                    }
+                    habit.lastDone = today;
+                    localStorage.setItem('habits', JSON.stringify(this.habits));
+                    this.render();
+                }
+            }
+
             changeLang(lang) {
                 this.lang = lang;
                 localStorage.setItem('lang', lang);
-                this.init();
+                this.render();
             }
 
-            showAddModal() {
+            toggleTheme() {
+                this.theme = this.theme === 'light' ? 'dark' : 'light';
+                localStorage.setItem('theme', this.theme);
+                document.body.classList.toggle('dark-theme');
+                this.render();
+            }
+
+            showAddTaskModal() {
                 const modal = document.createElement('div');
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">✨ ${this.tr('newTask')}</h3>
-                        <input type="text" id="taskInput" placeholder="${this.tr('newTask')}..." 
-                            class="w-full p-4 border-2 rounded-2xl mb-4 text-lg focus:border-purple-500 focus:outline-none">
-                        <p class="text-sm font-semibold mb-3 text-gray-700">${this.tr('priority')}:</p>
+                        <h3 class="text-xl font-bold mb-4">✨ ${this.tr('newTask')}</h3>
+                        <input type="text" id="taskInput" placeholder="${this.tr('enterItems')}..." 
+                            class="w-full p-4 border rounded-xl mb-4 text-base focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <p class="text-sm font-semibold mb-3">${this.tr('priority')}:</p>
                         <div class="grid grid-cols-3 gap-3 mb-4">
-                            <button onclick="app.addFromModal('high')" class="py-4 bg-gradient-to-br from-red-400 to-red-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md">
+                            <button onclick="app.addFromModal('high')" 
+                                class="py-3 bg-red-500 text-white rounded-xl font-semibold active:bg-red-600">
                                 🔴 ${this.tr('high')}
                             </button>
-                            <button onclick="app.addFromModal('medium')" class="py-4 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl font-bold shadow-lg active:shadow-md">
+                            <button onclick="app.addFromModal('medium')" 
+                                class="py-3 bg-yellow-500 text-white rounded-xl font-semibold active:bg-yellow-600">
                                 🟡 ${this.tr('medium')}
                             </button>
-                            <button onclick="app.addFromModal('low')" class="py-4 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md">
+                            <button onclick="app.addFromModal('low')" 
+                                class="py-3 bg-green-500 text-white rounded-xl font-semibold active:bg-green-600">
                                 🟢 ${this.tr('low')}
                             </button>
                         </div>
-                        <button onclick="app.closeModal()" class="w-full py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold active:bg-gray-200">
+                        <button onclick="app.closeModal()" 
+                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -153,10 +232,77 @@ const planFromUrl = params.get('plan') || 'free';
                 setTimeout(() => document.getElementById('taskInput')?.focus(), 100);
             }
 
+            showAddHabitModal() {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div class="modal-backdrop" onclick="app.closeModal()"></div>
+                    <div class="modal-content">
+                        <h3 class="text-xl font-bold mb-4">✨ ${this.tr('addHabit')}</h3>
+                        <input type="text" id="habitInput" placeholder="Название привычки..." 
+                            class="w-full p-4 border rounded-xl mb-4 text-base focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <div class="grid grid-cols-4 gap-2 mb-4">
+                            ${['💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '🎯'].map(icon => `
+                                <button onclick="app.addHabitFromModal('${icon}')" 
+                                    class="py-3 text-2xl bg-gray-100 rounded-xl active:bg-gray-200">
+                                    ${icon}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <button onclick="app.closeModal()" 
+                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
+                            ${this.tr('cancel')}
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                setTimeout(() => document.getElementById('habitInput')?.focus(), 100);
+            }
+
+            showShoppingModal() {
+                const modal = document.createElement('div');
+                modal.innerHTML = `
+                    <div class="modal-backdrop" onclick="app.closeModal()"></div>
+                    <div class="modal-content">
+                        <h3 class="text-xl font-bold mb-4">🛒 ${this.tr('shoppingList')}</h3>
+                        <textarea id="shoppingInput" placeholder="Хлеб\nМолоко\nЯйца\n..." 
+                            class="w-full p-4 border rounded-xl mb-4 text-base h-48 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                        <button onclick="app.estimateShopping()" 
+                            class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold mb-2 active:from-purple-700 active:to-purple-800">
+                            💰 ${this.tr('estimate')}
+                        </button>
+                        <button onclick="app.closeModal()" 
+                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:bg-gray-300">
+                            ${this.tr('cancel')}
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            estimateShopping() {
+                const input = document.getElementById('shoppingInput');
+                if (input?.value.trim()) {
+                    tg.sendData(JSON.stringify({
+                        action: 'estimate_shopping',
+                        items: input.value
+                    }));
+                    this.closeModal();
+                    tg.close();
+                }
+            }
+
             addFromModal(priority) {
                 const input = document.getElementById('taskInput');
                 if (input?.value.trim()) {
                     this.addTask(input.value, priority);
+                    this.closeModal();
+                }
+            }
+
+            addHabitFromModal(icon) {
+                const input = document.getElementById('habitInput');
+                if (input?.value.trim()) {
+                    this.addHabit(input.value, icon);
                     this.closeModal();
                 }
             }
@@ -180,22 +326,31 @@ const planFromUrl = params.get('plan') || 'free';
                 const completed = this.tasks.filter(t => t.completed).length;
                 
                 document.getElementById('root').innerHTML = `
-                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 sticky top-0 z-50 shadow-lg">
-                        <div class="flex justify-between items-center mb-3">
-                            <div>
-                                <h1 class="text-2xl font-bold">NextStep</h1>
-                                <p class="text-sm opacity-90">${new Date().toLocaleDateString(this.lang === 'ru' ? 'ru-RU' : 'en-US', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
+                    <div class="bg-white border-b sticky top-0 z-50 ${this.theme === 'dark' ? 'bg-gray-900 border-gray-800' : ''}">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h1 class="text-2xl font-bold text-gray-800">NextStep</h1>
+                                    <p class="text-sm text-gray-500">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <div class="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                                        ${this.plan.toUpperCase()}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="bg-white/20 backdrop-blur px-4 py-2 rounded-full">
-                                <span class="font-bold text-sm">${tasks.length} ${this.tr('tasks')}</span>
+                            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+                                ${['today', 'inbox', 'focus', 'review', 'habits', 'shopping', 'stats', 'subscription', 'settings'].map(v => `
+                                    <button onclick="app.setView('${v}')" 
+                                        class="px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all ${
+                                            this.view === v 
+                                                ? 'bg-purple-600 text-white' 
+                                                : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                                        }">
+                                        ${this.tr(v)}
+                                    </button>
+                                `).join('')}
                             </div>
-                        </div>
-                        <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
-                            ${['inbox', 'today', 'focus', 'review', 'habits', 'stats', 'subscription', 'support', 'settings', ...(this.isAdmin ? ['admin'] : [])].map(v => `
-                                <button onclick="app.setView('${v}')" class="px-4 py-2.5 rounded-full whitespace-nowrap transition-all ${this.view === v ? 'bg-white text-purple-600 shadow-lg scale-105' : 'bg-white/20 hover:bg-white/30'} font-semibold text-sm">
-                                    ${this.tr(v)}
-                                </button>
-                            `).join('')}
                         </div>
                     </div>
 
@@ -203,10 +358,20 @@ const planFromUrl = params.get('plan') || 'free';
                         ${this.view === 'stats' ? this.renderStats(completed) : 
                           this.view === 'settings' ? this.renderSettings() :
                           this.view === 'subscription' ? this.renderSubscription() :
-                          this.view === 'support' ? this.renderSupport() :
-                          this.view === 'admin' && this.isAdmin ? this.renderAdmin() :
+                          this.view === 'habits' ? this.renderHabits() :
+                          this.view === 'shopping' ? this.renderShopping() :
                           this.renderTasks(tasks)}
                     </div>
+
+                    ${['today', 'inbox', 'focus'].includes(this.view) ? `
+                        <div class="floating-btn" onclick="app.showAddTaskModal()">+</div>
+                    ` : ''}
+                    ${this.view === 'habits' ? `
+                        <div class="floating-btn" onclick="app.showAddHabitModal()">+</div>
+                    ` : ''}
+                    ${this.view === 'shopping' ? `
+                        <div class="floating-btn" onclick="app.showShoppingModal()">🛒</div>
+                    ` : ''}
                 `;
             }
 
@@ -214,33 +379,37 @@ const planFromUrl = params.get('plan') || 'free';
                 if (!tasks.length) {
                     return `
                         <div class="text-center py-20">
-                            <div class="w-28 h-28 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <span class="text-6xl">✨</span>
-                            </div>
-                            <p class="text-xl font-semibold text-gray-600 mb-2">${this.tr('noTasks')}</p>
-                            <p class="text-gray-400 text-sm">Нажмите кнопку ниже чтобы добавить</p>
+                            <div class="text-6xl mb-4">✨</div>
+                            <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('noTasks')}</p>
+                            <p class="text-gray-400 text-sm">Нажмите + чтобы добавить</p>
                         </div>
                     `;
                 }
 
                 return tasks.map(t => `
-                    <div class="task-card bg-white rounded-2xl p-5 mb-3 shadow-md border border-purple-50">
-                        <div class="flex gap-4">
-                            <button onclick="app.toggleTask(${t.id})" class="w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${t.completed ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-600' : 'border-gray-300 hover:border-purple-500'}">
-                                ${t.completed ? '<span class="text-white text-lg font-bold">✓</span>' : ''}
+                    <div class="task-card bg-white rounded-xl p-4 mb-3 border border-gray-100">
+                        <div class="flex gap-3">
+                            <button onclick="app.toggleTask(${t.id})" 
+                                class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                    t.completed 
+                                        ? 'bg-green-500 border-green-500' 
+                                        : 'border-gray-300'
+                                }">
+                                ${t.completed ? '<span class="text-white text-sm">✓</span>' : ''}
                             </button>
                             <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-base ${t.completed ? 'line-through text-gray-400' : 'text-gray-800'}">${t.text}</p>
-                                <div class="flex gap-2 mt-3 flex-wrap items-center">
-                                    <span class="text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm ${
-                                        t.priority === 'high' ? 'bg-gradient-to-r from-red-400 to-red-500 text-white' : 
-                                        t.priority === 'medium' ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' : 
-                                        'bg-gradient-to-r from-green-400 to-green-500 text-white'
+                                <p class="font-medium text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-800'}">${t.text}</p>
+                                <div class="flex gap-2 mt-2 items-center">
+                                    <span class="text-xs px-2 py-1 rounded-full ${
+                                        t.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                                        t.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
+                                        'bg-green-100 text-green-700'
                                     }">
-                                        ${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'} ${this.tr(t.priority)}
+                                        ${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'}
                                     </span>
                                     ${!t.completed ? `
-                                        <select onchange="app.moveTask(${t.id}, this.value)" class="text-xs px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border-none font-medium">
+                                        <select onchange="app.moveTask(${t.id}, this.value)" 
+                                            class="text-xs px-2 py-1 rounded-full bg-gray-100 border-none">
                                             <option value="inbox" ${t.status === 'inbox' ? 'selected' : ''}>📥 Inbox</option>
                                             <option value="today" ${t.status === 'today' ? 'selected' : ''}>📅 Today</option>
                                             <option value="focus" ${t.status === 'focus' ? 'selected' : ''}>🎯 Focus</option>
@@ -248,62 +417,104 @@ const planFromUrl = params.get('plan') || 'free';
                                     ` : ''}
                                 </div>
                             </div>
-                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 hover:text-red-600 text-2xl font-bold">×</button>
+                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 text-xl">×</button>
                         </div>
                     </div>
                 `).join('');
             }
 
+            renderHabits() {
+                if (!this.habits.length) {
+                    return `
+                        <div class="text-center py-20">
+                            <div class="text-6xl mb-4">🎯</div>
+                            <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('noHabits')}</p>
+                            <p class="text-gray-400 text-sm">Нажмите + чтобы добавить</p>
+                        </div>
+                    `;
+                }
+
+                const today = new Date().toISOString().split('T')[0];
+                
+                return this.habits.map(h => {
+                    const isDone = h.lastDone === today;
+                    return `
+                        <div class="bg-white rounded-xl p-4 mb-3 border border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="text-3xl">${h.icon}</div>
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-800">${h.text}</p>
+                                    <p class="text-xs text-gray-500">🔥 ${h.streak} ${this.tr('days')}</p>
+                                </div>
+                                <button onclick="app.checkHabit(${h.id})" 
+                                    class="px-4 py-2 rounded-lg font-semibold text-sm ${
+                                        isDone 
+                                            ? 'bg-green-100 text-green-700' 
+                                            : 'bg-purple-600 text-white active:bg-purple-700'
+                                    }" ${isDone ? 'disabled' : ''}>
+                                    ${isDone ? '✓ Готово' : this.tr('checkIn')}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderShopping() {
+                return `
+                    <div class="text-center py-20">
+                        <div class="text-6xl mb-4">🛒</div>
+                        <p class="text-lg font-semibold text-gray-600 mb-2">${this.tr('shoppingList')}</p>
+                        <p class="text-gray-400 text-sm mb-6">Добавьте товары и получите примерную стоимость</p>
+                        <button onclick="app.showShoppingModal()" 
+                            class="px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold active:bg-purple-700">
+                            ${this.tr('addItem')}
+                        </button>
+                    </div>
+                `;
+            }
+
             renderStats(completed) {
                 return `
-                    <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-2 gap-3 mb-4">
                         ${[
-                            { icon: '📋', label: this.tr('total'), value: this.tasks.length, color: 'from-blue-400 to-blue-600' },
-                            { icon: '✅', label: this.tr('completed'), value: completed, color: 'from-green-400 to-green-600' },
-                            { icon: '✨', label: this.tr('habits'), value: this.habits.length, color: 'from-purple-400 to-purple-600' },
-                            { icon: '🔥', label: 'Streak', value: 0, color: 'from-orange-400 to-red-600' }
+                            { icon: '📋', label: this.tr('total'), value: this.tasks.length, color: 'blue' },
+                            { icon: '✅', label: this.tr('completed'), value: completed, color: 'green' },
+                            { icon: '🎯', label: this.tr('habits'), value: this.habits.length, color: 'purple' },
+                            { icon: '🔥', label: 'Streak', value: Math.max(...this.habits.map(h => h.streak), 0), color: 'orange' }
                         ].map(s => `
-                            <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                                <div class="w-14 h-14 bg-gradient-to-br ${s.color} rounded-2xl flex items-center justify-center mb-3 text-2xl">
-                                    ${s.icon}
-                                </div>
-                                <p class="text-sm text-gray-600 font-medium mb-1">${s.label}</p>
-                                <p class="text-4xl font-bold bg-gradient-to-r ${s.color} bg-clip-text text-transparent">${s.value}</p>
+                            <div class="bg-white rounded-xl p-4 border border-gray-100">
+                                <div class="text-2xl mb-2">${s.icon}</div>
+                                <p class="text-xs text-gray-600 mb-1">${s.label}</p>
+                                <p class="text-2xl font-bold text-${s.color}-600">${s.value}</p>
                             </div>
                         `).join('')}
-                    </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                        <h3 class="font-bold text-lg mb-4 text-gray-800">📈 ${this.tr('stats')}</h3>
-                        ${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(day => {
-                            const percent = Math.random() * 100;
-                            return `
-                                <div class="flex items-center gap-3 mb-3">
-                                    <span class="text-sm font-medium text-gray-600 w-10">${day}</span>
-                                    <div class="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
-                                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all" style="width: ${percent}%"></div>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-700 w-12 text-right">${Math.floor(percent)}%</span>
-                                </div>
-                            `;
-                        }).join('')}
                     </div>
                 `;
             }
 
             renderSettings() {
                 return `
-                    <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                        <h3 class="font-bold text-xl mb-6 text-gray-800">⚙️ ${this.tr('settings')}</h3>
-                        <div class="mb-6">
-                            <p class="font-semibold mb-3 text-gray-700">${this.tr('language')}</p>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="app.changeLang('ru')" class="py-4 rounded-2xl font-bold transition-all ${this.lang === 'ru' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                                    ${this.tr('russian')}
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-xl p-4 border border-gray-100">
+                            <p class="font-semibold mb-3 text-gray-800">${this.tr('language')}</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="app.changeLang('ru')" 
+                                    class="py-3 rounded-lg font-semibold ${this.lang === 'ru' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}">
+                                    🇷🇺 Русский
                                 </button>
-                                <button onclick="app.changeLang('en')" class="py-4 rounded-2xl font-bold transition-all ${this.lang === 'en' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
-                                    ${this.tr('english')}
+                                <button onclick="app.changeLang('en')" 
+                                    class="py-3 rounded-lg font-semibold ${this.lang === 'en' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}">
+                                    🇬🇧 English
                                 </button>
                             </div>
+                        </div>
+                        <div class="bg-white rounded-xl p-4 border border-gray-100">
+                            <p class="font-semibold mb-3 text-gray-800">${this.tr('theme')}</p>
+                            <button onclick="app.toggleTheme()" 
+                                class="w-full py-3 rounded-lg font-semibold bg-purple-600 text-white active:bg-purple-700">
+                                ${this.theme === 'light' ? '🌙 ' + this.tr('dark') : '☀️ ' + this.tr('light')}
+                            </button>
                         </div>
                     </div>
                 `;
@@ -311,97 +522,57 @@ const planFromUrl = params.get('plan') || 'free';
 
             renderSubscription() {
                 const plans = [
-  {
-    key: 'free',
-    name: this.tr('free'),
-    icon: '🆓',
-    price: 0,
-    features: ['До 50 задач', 'Базовые функции'],
-    color: 'from-gray-400 to-gray-600',
-    current: this.plan === 'free'
-  },
-  {
-    key: 'premium',
-    name: this.tr('premium'),
-    icon: '⭐',
-    price: '149₽/мес',
-    features: ['Без лимитов', 'Статистика'],
-    color: 'from-purple-500 to-pink-500',
-    current: this.plan === 'premium'
-  },
-  {
-    key: 'pro',
-    name: this.tr('pro'),
-    icon: '🏆',
-    price: '219₽/мес',
-    features: ['AI', 'Интеграции'],
-    color: 'from-orange-500 to-red-600',
-    current: this.plan === 'pro'
-  }
-];
+                    {
+                        key: 'free',
+                        name: 'FREE',
+                        icon: '🆓',
+                        price: 'Бесплатно',
+                        features: ['До 50 задач', 'Базовые функции'],
+                        current: this.plan === 'free'
+                    },
+                    {
+                        key: 'premium',
+                        name: 'PREMIUM',
+                        icon: '⭐',
+                        price: '149₽/мес',
+                        features: ['Без лимитов', 'Статистика', 'AI расчет'],
+                        current: this.plan === 'premium'
+                    },
+                    {
+                        key: 'pro',
+                        name: 'PRO',
+                        icon: '🏆',
+                        price: '219₽/мес',
+                        features: ['Всё из Premium', 'AI помощник', 'Интеграции'],
+                        current: this.plan === 'pro'
+                    }
+                ];
                 
                 return plans.map(p => `
-                    <div class="bg-white rounded-2xl p-6 shadow-lg border ${p.current ? 'border-purple-500 border-2' : 'border-gray-100'} mb-4">
-                        ${p.current ? '<div class="inline-block bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">'+this.tr('current')+'</div>' : ''}
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="text-4xl">${p.icon}</span>
+                    <div class="bg-white rounded-xl p-4 border ${p.current ? 'border-purple-500 border-2' : 'border-gray-100'} mb-3">
+                        ${p.current ? '<div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full mb-2">Текущий</div>' : ''}
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-3xl">${p.icon}</span>
                             <div>
-                                <h3 class="text-2xl font-bold bg-gradient-to-r ${p.color} bg-clip-text text-transparent">${p.name}</h3>
-                                <p class="text-gray-600 font-semibold">${p.price || 'Навсегда'}</p>
+                                <h3 class="text-xl font-bold text-gray-800">${p.name}</h3>
+                                <p class="text-sm text-gray-600">${p.price}</p>
                             </div>
                         </div>
-                        <div class="space-y-2 mb-4">
-                            ${p.features.map(f => `<div class="flex items-center gap-2 text-gray-700"><span class="text-green-500">✓</span><span class="text-sm">${f}</span></div>`).join('')}
-                        </div>
-                        ${!p.current && p.price ? `<button class="w-full py-4 bg-gradient-to-r ${p.color} text-white rounded-2xl font-bold shadow-lg">${this.tr('subscribe')}</button>` : ''}
-                    </div>
-                `).join('') + `<p class="text-xs text-gray-500 text-center mt-4">${this.tr('securePayment')}</p>`;
-            }
-
-            renderSupport() {
-                return `
-                    <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                        <div class="text-center mb-6">
-                            <div class="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span class="text-5xl">💬</span>
-                            </div>
-                            <h2 class="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">${this.tr('helpTitle')}</h2>
-                            <p class="text-gray-600">${this.tr('helpText')}</p>
-                        </div>
-                        <a href="https://t.me/NextStepSupport" class="block">
-                            <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl p-6 shadow-lg active:scale-98 transition-all">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur">
-                                        <span class="text-3xl">💬</span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h4 class="font-bold text-lg">${this.tr('writeSupport')}</h4>
-                                        <p class="text-sm opacity-90">@NextStepSupport</p>
-                                    </div>
-                                    <span class="text-2xl opacity-70">→</span>
+                        <div class="space-y-1 mb-3">
+                            ${p.features.map(f => `
+                                <div class="flex items-center gap-2 text-sm text-gray-700">
+                                    <span class="text-green-500">✓</span>
+                                    <span>${f}</span>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                `;
-            }
-
-            renderAdmin() {
-                return `
-                    <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                        <h3 class="font-bold text-xl mb-4 text-gray-800">👑 Админ-панель</h3>
-                        <div class="space-y-3">
-                            <div class="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
-                                <p class="text-sm text-gray-600 mb-1">Всего пользователей</p>
-                                <p class="text-3xl font-bold text-purple-600">1</p>
-                            </div>
-                            <button onclick="tg.close()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold shadow-lg">
-                                🔐 Открыть бота для управления
-                            </button>
-                            <p class="text-xs text-gray-500 text-center">Используйте /admin в боте для полного управления</p>
+                            `).join('')}
                         </div>
+                        ${!p.current && p.key !== 'free' ? `
+                            <button class="w-full py-3 bg-purple-600 text-white rounded-lg font-semibold active:bg-purple-700">
+                                ${this.tr('subscribe')}
+                            </button>
+                        ` : ''}
                     </div>
-                `;
+                `).join('');
             }
         }
 
