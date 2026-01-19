@@ -10,60 +10,83 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             overflow-x: hidden;
         }
-        .dark-theme { background: #1a1a1a; color: #fff; }
-        .dark-theme .bg-white { background: #2a2a2a !important; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .dark-theme { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .dark-theme .glass-card { 
+            background: rgba(30, 30, 46, 0.95);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
         .dark-theme .text-gray-900 { color: #fff !important; }
-        .dark-theme .text-gray-800 { color: #e5e5e5 !important; }
+        .dark-theme .text-gray-700 { color: #e5e5e5 !important; }
         .dark-theme .text-gray-600 { color: #aaa !important; }
         .dark-theme .text-gray-500 { color: #888 !important; }
-        .dark-theme .border-gray-200 { border-color: #3a3a3a !important; }
-        .dark-theme .border-gray-100 { border-color: #333 !important; }
-        .dark-theme .bg-gray-50 { background: #252525 !important; }
-        .dark-theme .bg-gray-100 { background: #333 !important; }
+        
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+        
         .modal-backdrop { 
             position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.5); 
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
             z-index: 999;
             animation: fadeIn 0.2s;
         }
         .modal-content { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: white; 
-            border-radius: 20px 20px 0 0; 
+            border-radius: 24px 24px 0 0; 
             z-index: 1000; 
             max-height: 85vh; 
             overflow-y: auto; 
-            padding: 20px;
+            padding: 24px;
             animation: slideUp 0.3s;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
         }
-        .dark-theme .modal-content { background: #2a2a2a; }
+        .dark-theme .modal-content { background: #1e1e2e; }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .task-card { transition: all 0.2s; }
-        .task-card:active { transform: scale(0.98); }
+        @keyframes float { 
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .task-card { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .task-card:active { transform: scale(0.97); }
+        
         .floating-btn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 32px;
             color: white;
             cursor: pointer;
             z-index: 100;
-            transition: 0.2s;
+            transition: all 0.3s;
+            animation: float 3s ease-in-out infinite;
         }
         .floating-btn:active { transform: scale(0.9); }
+        
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -94,12 +117,11 @@
                 save: 'Сохранить', total: 'Всего', completed: 'Готово', 
                 language: 'Язык', theme: 'Тема', light: 'Светлая', dark: 'Темная',
                 russian: 'Русский', english: 'English', helpTitle: 'Помощь',
-                helpText: 'Используйте приложение для управления задачами и привычками',
+                helpText: 'Используйте приложение для управления задачами',
                 writeSupport: 'Написать в поддержку', free: 'FREE', premium: 'PREMIUM', pro: 'PRO',
-                features: 'Возможности', current: 'Текущий', subscribe: 'Оформить',
+                current: 'Текущий', subscribe: 'Оформить',
                 shoppingList: 'Список покупок', addItem: 'Добавить товары',
-                estimate: 'Рассчитать стоимость', enterItems: 'Введите список покупок',
-                estimatedCost: 'Примерная стоимость',
+                estimate: 'Рассчитать', enterItems: 'Введите список',
                 noHabits: 'Нет привычек', addHabit: 'Добавить привычку',
                 streak: 'Серия', days: 'дней', checkIn: 'Отметить',
                 newHabit: 'Новая привычка', habitName: 'Название привычки',
@@ -224,26 +246,26 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4 gradient-text">✨ ${this.tr('newTask')}</h3>
+                        <h3 class="text-2xl font-bold mb-6 gradient-text">✨ ${this.tr('newTask')}</h3>
                         <input type="text" id="taskInput" placeholder="${this.tr('enterItems')}..." 
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base focus:outline-none focus:border-purple-500">
+                            class="w-full p-4 border-2 border-purple-200 rounded-2xl mb-4 text-base focus:outline-none focus:border-purple-500 transition-all">
                         <p class="text-sm font-semibold mb-3 text-gray-700">${this.tr('priority')}:</p>
-                        <div class="grid grid-cols-3 gap-3 mb-4">
+                        <div class="grid grid-cols-3 gap-3 mb-6">
                             <button onclick="app.addFromModal('high')" 
-                                class="py-3 bg-red-500 text-white rounded-xl font-semibold active:bg-red-600">
+                                class="py-4 bg-gradient-to-br from-red-400 to-red-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md transform active:scale-95 transition-all">
                                 🔴 ${this.tr('high')}
                             </button>
                             <button onclick="app.addFromModal('medium')" 
-                                class="py-3 bg-yellow-500 text-white rounded-xl font-semibold active:bg-yellow-600">
+                                class="py-4 bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl font-bold shadow-lg active:shadow-md transform active:scale-95 transition-all">
                                 🟡 ${this.tr('medium')}
                             </button>
                             <button onclick="app.addFromModal('low')" 
-                                class="py-3 bg-green-500 text-white rounded-xl font-semibold active:bg-green-600">
+                                class="py-4 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md transform active:scale-95 transition-all">
                                 🟢 ${this.tr('low')}
                             </button>
                         </div>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
+                            class="w-full py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold active:bg-gray-200 transition-all">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -257,20 +279,20 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4 gradient-text">✨ ${this.tr('newHabit')}</h3>
+                        <h3 class="text-2xl font-bold mb-6 gradient-text">✨ ${this.tr('newHabit')}</h3>
                         <input type="text" id="habitInput" placeholder="${this.tr('habitName')}..." 
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base focus:outline-none focus:border-purple-500">
+                            class="w-full p-4 border-2 border-purple-200 rounded-2xl mb-4 text-base focus:outline-none focus:border-purple-500 transition-all">
                         <p class="text-sm font-semibold mb-3 text-gray-700">${this.tr('chooseIcon')}:</p>
-                        <div class="grid grid-cols-4 gap-2 mb-4">
+                        <div class="grid grid-cols-4 gap-3 mb-6">
                             ${['💪', '📚', '🏃', '🧘', '💧', '🥗', '😴', '🎯', '🚴', '🎨', '✍️', '🎵'].map(icon => `
                                 <button onclick="app.addHabitFromModal('${icon}')" 
-                                    class="py-3 text-2xl bg-gray-50 rounded-xl active:bg-gray-100 border border-gray-200">
+                                    class="py-4 text-3xl bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl active:scale-95 transition-all border-2 border-purple-100">
                                     ${icon}
                                 </button>
                             `).join('')}
                         </div>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
+                            class="w-full py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold active:bg-gray-200 transition-all">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -284,16 +306,16 @@
                 modal.innerHTML = `
                     <div class="modal-backdrop" onclick="app.closeModal()"></div>
                     <div class="modal-content">
-                        <h3 class="text-xl font-bold mb-4 gradient-text">🛒 ${this.tr('shoppingList')}</h3>
+                        <h3 class="text-2xl font-bold mb-6 gradient-text">🛒 ${this.tr('shoppingList')}</h3>
                         <p class="text-sm text-gray-600 mb-3">Введите товары (каждый с новой строки):</p>
                         <textarea id="shoppingInput" placeholder="Хлеб\nМолоко\nЯйца\nМасло\n..." 
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl mb-4 text-base h-48 focus:outline-none focus:border-purple-500 resize-none"></textarea>
+                            class="w-full p-4 border-2 border-purple-200 rounded-2xl mb-4 text-base h-48 focus:outline-none focus:border-purple-500 resize-none transition-all"></textarea>
                         <button onclick="app.estimateShopping()" 
-                            class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold mb-2 active:from-purple-700 active:to-purple-800 shadow-lg">
+                            class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold mb-3 shadow-lg active:shadow-md transform active:scale-95 transition-all">
                             💰 ${this.tr('estimate')}
                         </button>
                         <button onclick="app.closeModal()" 
-                            class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold active:bg-gray-200">
+                            class="w-full py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold active:bg-gray-200 transition-all">
                             ${this.tr('cancel')}
                         </button>
                     </div>
@@ -354,43 +376,44 @@
                 const completed = this.tasks.filter(t => t.completed).length;
                 
                 document.getElementById('root').innerHTML = `
-                    <div class="bg-white border-b border-gray-200 sticky top-0 z-50">
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-4">
+                    <div class="min-h-screen pb-24">
+                        <!-- Шапка с градиентом -->
+                        <div class="px-6 pt-8 pb-6">
+                            <div class="flex justify-between items-start mb-6">
                                 <div>
-                                    <h1 class="text-2xl font-bold gradient-text">NextStep</h1>
-                                    <p class="text-xs text-gray-500">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
+                                    <h1 class="text-3xl font-bold text-white mb-1">NextStep</h1>
+                                    <p class="text-white text-opacity-80 text-sm">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
                                 </div>
-                                <div class="flex gap-2 items-center">
-                                    <div class="px-3 py-1.5 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 rounded-full text-xs font-bold">
-                                        ${this.plan.toUpperCase()}
-                                    </div>
-                                    ${tasks.length > 0 ? `<div class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">${tasks.length}</div>` : ''}
+                                <div class="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-full text-white text-xs font-bold">
+                                    ${this.plan.toUpperCase()}
                                 </div>
                             </div>
+
+                            <!-- Навигация Pills -->
                             <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                                 ${['today', 'inbox', 'focus', 'review', 'habits', 'shopping', 'stats', 'subscription', 'support', 'settings'].map(v => `
                                     <button onclick="app.setView('${v}')" 
-                                        class="px-4 py-2 rounded-full whitespace-nowrap text-sm font-semibold transition-all ${
+                                        class="px-5 py-2.5 rounded-full whitespace-nowrap text-sm font-bold transition-all ${
                                             this.view === v 
-                                                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' 
-                                                : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                                                ? 'bg-white text-purple-600 shadow-lg' 
+                                                : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
                                         }">
                                         ${this.tr(v)}
                                     </button>
                                 `).join('')}
                             </div>
                         </div>
-                    </div>
 
-                    <div class="p-4 pb-24">
-                        ${this.view === 'stats' ? this.renderStats(completed) : 
-                          this.view === 'settings' ? this.renderSettings() :
-                          this.view === 'subscription' ? this.renderSubscription() :
-                          this.view === 'habits' ? this.renderHabits() :
-                          this.view === 'shopping' ? this.renderShopping() :
-                          this.view === 'support' ? this.renderSupport() :
-                          this.renderTasks(tasks)}
+                        <!-- Контент -->
+                        <div class="px-4">
+                            ${this.view === 'stats' ? this.renderStats(completed) : 
+                              this.view === 'settings' ? this.renderSettings() :
+                              this.view === 'subscription' ? this.renderSubscription() :
+                              this.view === 'habits' ? this.renderHabits() :
+                              this.view === 'shopping' ? this.renderShopping() :
+                              this.view === 'support' ? this.renderSupport() :
+                              this.renderTasks(tasks)}
+                        </div>
                     </div>
 
                     ${['today', 'inbox', 'focus'].includes(this.view) ? `
@@ -410,35 +433,37 @@
                     const emojis = { today: '📅', inbox: '📥', focus: '🎯', review: '✅' };
                     return `
                         <div class="text-center py-20">
-                            <div class="text-6xl mb-4">${emojis[this.view] || '✨'}</div>
-                            <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('noTasks')}</p>
-                            <p class="text-sm text-gray-400">Нажмите кнопку + чтобы добавить</p>
+                            <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+                                <span class="text-6xl">${emojis[this.view] || '✨'}</span>
+                            </div>
+                            <p class="text-xl font-bold text-white mb-2">${this.tr('noTasks')}</p>
+                            <p class="text-white text-opacity-70 text-sm">Нажмите кнопку + чтобы добавить</p>
                         </div>
                     `;
                 }
 
                 return tasks.map(t => `
-                    <div class="task-card bg-white rounded-xl p-4 mb-3 border border-gray-100 shadow-sm">
-                        <div class="flex gap-3">
+                    <div class="task-card glass-card rounded-3xl p-5 mb-4">
+                        <div class="flex gap-4">
                             <button onclick="app.toggleTask(${t.id})" 
-                                class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                                    t.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-purple-500'
+                                class="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                    t.completed ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-600' : 'border-purple-300 hover:border-purple-500'
                                 }">
                                 ${t.completed ? '<span class="text-white text-sm font-bold">✓</span>' : ''}
                             </button>
                             <div class="flex-1 min-w-0">
-                                <p class="font-medium text-sm ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'}">${t.text}</p>
-                                <div class="flex gap-2 mt-2 items-center flex-wrap">
-                                    <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${
-                                        t.priority === 'high' ? 'bg-red-100 text-red-700' : 
-                                        t.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
-                                        'bg-green-100 text-green-700'
-                                    }">
+                                <p class="font-semibold text-base ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'} mb-2">${t.text}</p>
+                                <div class="flex gap-2 items-center flex-wrap">
+                                    <span class="text-xs px-3 py-1.5 rounded-full font-bold ${
+                                        t.priority === 'high' ? 'bg-gradient-to-r from-red-400 to-red-500 text-white' : 
+                                        t.priority === 'medium' ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' : 
+                                        'bg-gradient-to-r from-green-400 to-green-500 text-white'
+                                    } shadow-md">
                                         ${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'}
                                     </span>
                                     ${!t.completed ? `
                                         <select onchange="app.moveTask(${t.id}, this.value)" 
-                                            class="text-xs px-2 py-1 rounded-full bg-gray-50 border border-gray-200 font-medium text-gray-700">
+                                            class="text-xs px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border-none font-semibold">
                                             <option value="inbox" ${t.status === 'inbox' ? 'selected' : ''}>📥 Inbox</option>
                                             <option value="today" ${t.status === 'today' ? 'selected' : ''}>📅 Today</option>
                                             <option value="focus" ${t.status === 'focus' ? 'selected' : ''}>🎯 Focus</option>
@@ -446,7 +471,7 @@
                                     ` : ''}
                                 </div>
                             </div>
-                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 hover:text-red-600 text-xl font-bold">×</button>
+                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 hover:text-red-600 text-2xl font-bold">×</button>
                         </div>
                     </div>
                 `).join('');
@@ -456,9 +481,11 @@
                 if (!this.habits.length) {
                     return `
                         <div class="text-center py-20">
-                            <div class="text-6xl mb-4">🎯</div>
-                            <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('noHabits')}</p>
-                            <p class="text-sm text-gray-400">Нажмите кнопку + чтобы добавить</p>
+                            <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+                                <span class="text-6xl">🎯</span>
+                            </div>
+                            <p class="text-xl font-bold text-white mb-2">${this.tr('noHabits')}</p>
+                            <p class="text-white text-opacity-70 text-sm">Нажмите кнопку + чтобы добавить</p>
                         </div>
                     `;
                 }
@@ -468,21 +495,23 @@
                 return this.habits.map(h => {
                     const isDone = h.lastDone === today;
                     return `
-                        <div class="bg-white rounded-xl p-4 mb-3 border border-gray-100 shadow-sm">
-                            <div class="flex items-center gap-3">
-                                <div class="text-3xl">${h.icon}</div>
+                        <div class="glass-card rounded-3xl p-5 mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-4xl">
+                                    ${h.icon}
+                                </div>
                                 <div class="flex-1">
-                                    <p class="font-semibold text-gray-900">${h.text}</p>
-                                    <p class="text-xs text-gray-500 mt-1">🔥 Серия: ${h.streak} ${this.tr('days')}</p>
+                                    <p class="font-bold text-lg text-gray-900">${h.text}</p>
+                                    <p class="text-sm text-gray-500 mt-1">🔥 ${this.tr('streak')}: ${h.streak} ${this.tr('days')}</p>
                                 </div>
                                 <div class="flex gap-2">
                                     <button onclick="app.checkHabit(${h.id})" 
-                                        class="px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                                            isDone ? 'bg-green-100 text-green-700' : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md active:shadow-sm'
+                                        class="px-5 py-3 rounded-2xl font-bold text-sm transition-all shadow-md ${
+                                            isDone ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-700' : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white active:shadow-sm'
                                         }" ${isDone ? 'disabled' : ''}>
                                         ✓
                                     </button>
-                                    <button onclick="app.deleteHabit(${h.id})" class="text-red-400 hover:text-red-600 text-xl font-bold px-2">×</button>
+                                    <button onclick="app.deleteHabit(${h.id})" class="text-red-400 hover:text-red-600 text-2xl font-bold px-2">×</button>
                                 </div>
                             </div>
                         </div>
@@ -493,11 +522,13 @@
             renderShopping() {
                 return `
                     <div class="text-center py-20">
-                        <div class="text-6xl mb-4">🛒</div>
-                        <p class="text-lg font-semibold text-gray-700 mb-2">${this.tr('shoppingList')}</p>
-                        <p class="text-sm text-gray-500 mb-6">Добавьте товары и получите примерную стоимость с помощью AI</p>
+                        <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
+                            <span class="text-6xl">🛒</span>
+                        </div>
+                        <p class="text-xl font-bold text-white mb-2">${this.tr('shoppingList')}</p>
+                        <p class="text-white text-opacity-70 text-sm mb-8">Добавьте товары и получите примерную стоимость</p>
                         <button onclick="app.showShoppingModal()" 
-                            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md">
+                            class="px-8 py-4 bg-white text-purple-600 rounded-2xl font-bold shadow-lg active:shadow-md transform active:scale-95 transition-all">
                             ${this.tr('addItem')}
                         </button>
                     </div>
@@ -506,91 +537,76 @@
 
             renderStats(completed) {
                 return `
-                    <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
                         ${[
                             { icon: '📋', label: this.tr('total'), value: this.tasks.length },
                             { icon: '✅', label: this.tr('completed'), value: completed },
                             { icon: '🎯', label: this.tr('habits'), value: this.habits.length },
                             { icon: '🔥', label: 'Streak', value: Math.max(...this.habits.map(h => h.streak), 0) }
                         ].map(s => `
-                            <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                                <div class="text-3xl mb-2">${s.icon}</div>
-                                <p class="text-xs text-gray-600 mb-1">${s.label}</p>
-                                <p class="text-2xl font-bold gradient-text">${s.value}</p>
+                            <div class="glass-card rounded-3xl p-5">
+                                <div class="text-4xl mb-3">${s.icon}</div>
+                                <p class="text-xs text-gray-600 mb-1 font-semibold">${s.label}</p>
+                                <p class="text-3xl font-bold gradient-text">${s.value}</p>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                        <h3 class="font-bold text-lg mb-3 text-gray-900">📈 Прогресс по дням</h3>
-                        <p class="text-sm text-gray-500 text-center py-8">Статистика появится после использования приложения</p>
+                    <div class="glass-card rounded-3xl p-5">
+                        <h3 class="font-bold text-xl text-gray-900 mb-3">📈 Прогресс</h3>
+                        <p class="text-sm text-gray-500 text-center py-8">Статистика появится после использования</p>
                     </div>
                 `;
             }
 
             renderSupport() {
                 return `
-                    <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+                    <div class="glass-card rounded-3xl p-6">
                         <div class="text-center mb-6">
-                            <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                <span class="text-4xl">💬</span>
-                            </div>
-                            <h2 class="text-2xl font-bold mb-2 gradient-text">${this.tr('helpTitle')}</h2>
-                            <p class="text-gray-600 text-sm">${this.tr('helpText')}</p>
-                        </div>
-                        <div class="space-y-3 mb-6">
-                            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                                <span class="text-2xl">📋</span>
-                                <div>
-                                    <h4 class="font-semibold text-sm text-gray-900">Управление задачами</h4>
-                                    <p class="text-xs text-gray-600">Создавайте задачи и перемещайте их между статусами</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                                <span class="text-2xl">🎯</span>
-                                <div>
-                                    <h4 class="font-semibold text-sm text-gray-900">Трекер привычек</h4>
-                                    <p class="text-xs text-gray-600">Отмечайте привычки каждый день и следите за серией</p
+                            <div class="w-24 h-24 bg
 
-                            </div>
+-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+<span class="text-5xl">💬</span>
 </div>
-                        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-                            <span class="text-2xl">🛒</span>
-                            <div>
-                                <h4 class="font-semibold text-sm text-gray-900">Список покупок</h4>
-                                <p class="text-xs text-gray-600">AI рассчитает примерную стоимость ваших покупок</p>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="https://t.me/NextStepSupport" target="_blank">
-                        <button class="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md mb-2">
-                            💬 ${this.tr('writeSupport')}
-                        </button>
-                    </a>
-                    <p class="text-xs text-gray-500 text-center">@NextStepSupport</p>
-                </div>
-            `;
-        }
+<h2 class="text-2xl font-bold mb-2 gradient-text">${this.tr('helpTitle')}</h2>
+<p class="text-gray-600 text-sm">${this.tr('helpText')}</p>
+</div>
+<div class="space-y-3 mb-6">
+${[
+{ icon: '📋', title: 'Управление задачами', text: 'Создавайте задачи и перемещайте их между статусами' },
+{ icon: '🎯', title: 'Трекер привычек', text: 'Отмечайте привычки каждый день и следите за серией' },
+{ icon: '🛒', title: 'Список покупок', text: 'AI рассчитает примерную стоимость ваших покупок' }
+].map(item =>                                 <div class="flex items-start gap-3 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">                                     <span class="text-3xl">${item.icon}</span>                                     <div>                                         <h4 class="font-bold text-sm text-gray-900">${item.title}</h4>                                         <p class="text-xs text-gray-600 mt-1">${item.text}</p>                                     </div>                                 </div>                            ).join('')}
+</div>
+<a href="https://t.me/NextStepSupport" target="_blank">
+<button class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md mb-2">
+💬 ${this.tr('writeSupport')}
+</button>
+</a>
+<p class="text-xs text-gray-500 text-center">@NextStepSupport</p>
+</div>
+`;
+}
 
-        renderSettings() {
+renderSettings() {
             return `
-                <div class="space-y-3">
-                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                        <p class="font-semibold mb-3 text-gray-900">${this.tr('language')}</p>
-                        <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-4">
+                    <div class="glass-card rounded-3xl p-5">
+                        <p class="font-bold mb-4 text-gray-900">${this.tr('language')}</p>
+                        <div class="grid grid-cols-2 gap-3">
                             <button onclick="app.changeLang('ru')" 
-                                class="py-3 rounded-xl font-semibold transition-all ${this.lang === 'ru' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
+                                class="py-3 rounded-2xl font-bold transition-all ${this.lang === 'ru' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
                                 🇷🇺 Русский
                             </button>
                             <button onclick="app.changeLang('en')" 
-                                class="py-3 rounded-xl font-semibold transition-all ${this.lang === 'en' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
+                                class="py-3 rounded-2xl font-bold transition-all ${this.lang === 'en' ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' : 'bg-gray-100 text-gray-700 active:bg-gray-200'}">
                                 🇬🇧 English
                             </button>
                         </div>
                     </div>
-                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                        <p class="font-semibold mb-3 text-gray-900">${this.tr('theme')}</p>
+                    <div class="glass-card rounded-3xl p-5">
+                        <p class="font-bold mb-4 text-gray-900">${this.tr('theme')}</p>
                         <button onclick="app.toggleTheme()" 
-                            class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg active:shadow-md">
+                            class="w-full py-3 rounded-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg active:shadow-md">
                             ${this.theme === 'light' ? '🌙 ' + this.tr('dark') : '☀️ ' + this.tr('light')}
                         </button>
                     </div>
@@ -627,30 +643,30 @@
             ];
             
             return plans.map(p => `
-                <div class="bg-white rounded-xl p-4 border ${p.current ? 'border-purple-500 border-2 shadow-lg' : 'border-gray-100 shadow-sm'} mb-3">
-                    ${p.current ? '<div class="inline-block bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 shadow-md">✓ Текущий тариф</div>' : ''}
-                    <div class="flex items-center gap-3 mb-3">
-                        <span class="text-3xl">${p.icon}</span>
+                <div class="glass-card rounded-3xl p-5 ${p.current ? 'ring-2 ring-white ring-opacity-50 shadow-2xl' : ''} mb-4">
+                    ${p.current ? '<div class="inline-block bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-4 py-2 rounded-full mb-3 shadow-lg">✓ Текущий тариф</div>' : ''}
+                    <div class="flex items-center gap-4 mb-4">
+                        <span class="text-5xl">${p.icon}</span>
                         <div>
-                            <h3 class="text-xl font-bold gradient-text">${p.name}</h3>
-                            <p class="text-sm text-gray-600 font-semibold">${p.price}</p>
+                            <h3 class="text-2xl font-bold gradient-text">${p.name}</h3>
+                            <p class="text-sm text-gray-600 font-bold">${p.price}</p>
                         </div>
                     </div>
-                    <div class="space-y-2 mb-3">
+                    <div class="space-y-2 mb-4">
                         ${p.features.map(f => `
-                            <div class="flex items-center gap-2 text-sm text-gray-700">
-                                <span class="text-green-500 font-bold">✓</span>
-                                <span>${f}</span>
+                            <div class="flex items-center gap-3 text-sm text-gray-700">
+                                <span class="text-green-500 font-bold text-lg">✓</span>
+                                <span class="font-medium">${f}</span>
                             </div>
                         `).join('')}
                     </div>
                     ${!p.current && p.key !== 'free' ? `
-                        <button class="w-full py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold shadow-lg active:shadow-md">
+                        <button class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold shadow-lg active:shadow-md transform active:scale-95 transition-all">
                             ${this.tr('subscribe')}
                         </button>
                     ` : ''}
                 </div>
-            `).join('') + `<p class="text-xs text-gray-500 text-center mt-4">💳 Безопасная оплата через Telegram</p>`;
+            `).join('') + `<p class="text-xs text-white text-opacity-70 text-center mt-4">💳 Безопасная оплата через Telegram</p>`;
         }
     }
 
