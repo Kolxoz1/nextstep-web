@@ -7,93 +7,70 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .dark-theme { 
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        }
-        .dark-theme .glass-card { 
-            background: rgba(30, 30, 46, 0.95);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        .dark-theme .text-gray-900 { color: #fff !important; }
-        .dark-theme .text-gray-700 { color: #e5e5e5 !important; }
-        .dark-theme .text-gray-600 { color: #aaa !important; }
-        .dark-theme .text-gray-500 { color: #888 !important; }
-        
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        
-        .modal-backdrop { 
-            position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            z-index: 999;
-            animation: fadeIn 0.2s;
-        }
-        .modal-content { 
-            position: fixed; bottom: 0; left: 0; right: 0; 
-            background: white; 
-            border-radius: 24px 24px 0 0; 
-            z-index: 1000; 
-            max-height: 85vh; 
-            overflow-y: auto; 
-            padding: 24px;
-            animation: slideUp 0.3s;
-            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
-        }
-        .dark-theme .modal-content { background: #1e1e2e; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes float { 
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .task-card { 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .task-card:active { transform: scale(0.97); }
-        
-        .floating-btn {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            cursor: pointer;
-            z-index: 100;
-            transition: all 0.3s;
-            animation: float 3s ease-in-out infinite;
-        }
-        .floating-btn:active { transform: scale(0.9); }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    </style>
+:root {
+  --bg: #F9FAFB;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #111827;
+  --muted: #6B7280;
+  --accent: #6C63FF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.card {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+/* кнопка + */
+.floating-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* модальные окна */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+}
+
+.modal-content {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+}
+</style>
 </head>
 <body>
     <div id="root"></div>
@@ -376,33 +353,34 @@
                 const completed = this.tasks.filter(t => t.completed).length;
                 
                 document.getElementById('root').innerHTML = `
-                    <div class="min-h-screen pb-24">
-                        <!-- Шапка с градиентом -->
-                        <div class="px-6 pt-8 pb-6">
-                            <div class="flex justify-between items-start mb-6">
-                                <div>
-                                    <h1 class="text-3xl font-bold text-white mb-1">NextStep</h1>
-                                    <p class="text-white text-opacity-80 text-sm">${new Date().toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})}</p>
-                                </div>
-                                <div class="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm rounded-full text-white text-xs font-bold">
-                                    ${this.plan.toUpperCase()}
-                                </div>
-                            </div>
+                    <div class="bg-white card sticky top-0 z-50">
+  <div class="px-4 py-3">
+    <h1 class="text-base font-semibold">
+      ${this.tr(this.view)}
+    </h1>
+    <p class="text-xs text-muted">
+      ${new Date().toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+      })}
+    </p>
 
-                            <!-- Навигация Pills -->
-                            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-                                ${['today', 'inbox', 'focus', 'review', 'habits', 'shopping', 'stats', 'subscription', 'support', 'settings'].map(v => `
-                                    <button onclick="app.setView('${v}')" 
-                                        class="px-5 py-2.5 rounded-full whitespace-nowrap text-sm font-bold transition-all ${
-                                            this.view === v 
-                                                ? 'bg-white text-purple-600 shadow-lg' 
-                                                : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
-                                        }">
-                                        ${this.tr(v)}
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
+    <div class="flex gap-2 mt-3 overflow-x-auto">
+      ${['today','inbox','focus','review','habits','shopping','stats','subscription','settings'].map(v => `
+        <button
+          onclick="app.setView('${v}')"
+          class="px-3 py-1.5 text-sm rounded-md ${
+            this.view === v
+              ? 'bg-gray-900 text-white'
+              : 'text-gray-600'
+          }">
+          ${this.tr(v)}
+        </button>
+      `).join('')}
+    </div>
+  </div>
+</div>
 
                         <!-- Контент -->
                         <div class="px-4">
@@ -429,53 +407,61 @@
             }
 
             renderTasks(tasks) {
-                if (!tasks.length) {
-                    const emojis = { today: '📅', inbox: '📥', focus: '🎯', review: '✅' };
-                    return `
-                        <div class="text-center py-20">
-                            <div class="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm">
-                                <span class="text-6xl">${emojis[this.view] || '✨'}</span>
-                            </div>
-                            <p class="text-xl font-bold text-white mb-2">${this.tr('noTasks')}</p>
-                            <p class="text-white text-opacity-70 text-sm">Нажмите кнопку + чтобы добавить</p>
-                        </div>
-                    `;
-                }
+    if (!tasks.length) {
+        return `
+            <div class="text-center py-20 text-gray-500">
+                <p class="text-sm">Нет задач</p>
+                <p class="text-xs mt-2">Нажмите + чтобы добавить</p>
+            </div>
+        `;
+    }
 
-                return tasks.map(t => `
-                    <div class="task-card glass-card rounded-3xl p-5 mb-4">
-                        <div class="flex gap-4">
-                            <button onclick="app.toggleTask(${t.id})" 
-                                class="w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                                    t.completed ? 'bg-gradient-to-br from-green-400 to-green-600 border-green-600' : 'border-purple-300 hover:border-purple-500'
-                                }">
-                                ${t.completed ? '<span class="text-white text-sm font-bold">✓</span>' : ''}
-                            </button>
-                            <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-base ${t.completed ? 'line-through text-gray-400' : 'text-gray-900'} mb-2">${t.text}</p>
-                                <div class="flex gap-2 items-center flex-wrap">
-                                    <span class="text-xs px-3 py-1.5 rounded-full font-bold ${
-                                        t.priority === 'high' ? 'bg-gradient-to-r from-red-400 to-red-500 text-white' : 
-                                        t.priority === 'medium' ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white' : 
-                                        'bg-gradient-to-r from-green-400 to-green-500 text-white'
-                                    } shadow-md">
-                                        ${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'}
-                                    </span>
-                                    ${!t.completed ? `
-                                        <select onchange="app.moveTask(${t.id}, this.value)" 
-                                            class="text-xs px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 border-none font-semibold">
-                                            <option value="inbox" ${t.status === 'inbox' ? 'selected' : ''}>📥 Inbox</option>
-                                            <option value="today" ${t.status === 'today' ? 'selected' : ''}>📅 Today</option>
-                                            <option value="focus" ${t.status === 'focus' ? 'selected' : ''}>🎯 Focus</option>
-                                        </select>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            <button onclick="app.deleteTask(${t.id})" class="text-red-400 hover:text-red-600 text-2xl font-bold">×</button>
-                        </div>
+    return tasks.map(t => `
+        <div class="card px-3 py-3">
+            <div class="flex gap-3 items-start">
+
+                <!-- чекбокс -->
+                <button onclick="app.toggleTask(${t.id})"
+                    class="w-4 h-4 mt-1 rounded border ${
+                        t.completed
+                            ? 'bg-gray-900 border-gray-900'
+                            : 'border-gray-300'
+                    }">
+                </button>
+
+                <!-- текст -->
+                <div class="flex-1">
+                    <p class="text-sm ${t.completed ? 'line-through text-muted' : ''}">
+                        ${t.text}
+                    </p>
+
+                    <!-- приоритет + статус -->
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="w-2 h-2 rounded-full ${
+                            t.priority === 'high'
+                                ? 'bg-red-500'
+                                : t.priority === 'medium'
+                                ? 'bg-amber-400'
+                                : 'bg-gray-300'
+                        }"></span>
+
+                        <select
+                            onchange="app.moveTask(${t.id}, this.value)"
+                            class="text-xs text-muted bg-transparent outline-none">
+                            <option value="inbox" ${t.status === 'inbox' ? 'selected' : ''}>Inbox</option>
+                            <option value="today" ${t.status === 'today' ? 'selected' : ''}>Today</option>
+                            <option value="focus" ${t.status === 'focus' ? 'selected' : ''}>Focus</option>
+                        </select>
                     </div>
-                `).join('');
-            }
+                </div>
+
+                <!-- удалить -->
+                <button onclick="app.deleteTask(${t.id})"
+                    class="text-muted text-lg leading-none">×</button>
+            </div>
+        </div>
+    `).join('');
+}
 
             renderHabits() {
                 if (!this.habits.length) {
