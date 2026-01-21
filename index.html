@@ -449,9 +449,13 @@ this.user = tgUser || {
   <div class="px-4 py-3">
     <div class="flex items-center gap-3">
   <!-- аватар -->
-  <div class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-semibold">
-    ${this.user.first_name.charAt(0)}
-  </div>
+  <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200
+            flex items-center justify-center font-semibold text-gray-700">
+  ${this.user.photo_url
+    ? `<img src="${this.user.photo_url}" class="w-full h-full object-cover" />`
+    : this.user.first_name.charAt(0)
+  }
+</div>
 
   <!-- имя + дата -->
   <div>
