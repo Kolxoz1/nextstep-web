@@ -779,13 +779,36 @@ renderShopping() {
           ? `<p class="text-sm text-gray-500">Список пуст</p>`
           : this.shopping.map(item => `
             <div class="flex items-center gap-3 mb-2">
-              <span class="text-sm text-gray-900">
+
+              <!-- чекбокс -->
+              <button
+                onclick="app.toggleShoppingItem(${item.id})"
+                class="w-5 h-5 rounded border flex items-center justify-center
+                ${item.bought
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'border-gray-300'}">
+                ${item.bought ? '✓' : ''}
+              </button>
+
+              <!-- название -->
+              <span class="flex-1 text-sm ${
+                item.bought ? 'line-through text-gray-400' : 'text-gray-900'
+              }">
                 ${item.name}
               </span>
 
-              <span class="ml-auto text-sm text-gray-500">
+              <!-- цена -->
+              <span class="text-sm text-gray-500">
                 ${item.price} ₽
               </span>
+
+              <!-- удалить -->
+              <button
+                onclick="app.deleteShoppingItem(${item.id})"
+                class="text-gray-400 text-lg leading-none">
+                ×
+              </button>
+
             </div>
           `).join('')
       }
@@ -798,6 +821,21 @@ renderShopping() {
       </button>
     </div>
   `;
+}
+
+toggleShoppingItem(id) {
+    const item = this.shopping.find(i => i.id === id);
+    if (!item) return;
+
+    item.bought = !item.bought;
+    localStorage.setItem('shopping', JSON.stringify(this.shopping));
+    this.render();
+}
+
+deleteShoppingItem(id) {
+    this.shopping = this.shopping.filter(i => i.id !== id);
+    localStorage.setItem('shopping', JSON.stringify(this.shopping));
+    this.render();
 }
 
 renderSettings() {
