@@ -102,6 +102,15 @@ body {
 .fab:active {
   transform: scale(0.96);
 }
+/* фикс выравнивания + на ПК */
+.fab {
+  line-height: 0;
+}
+
+.fab svg {
+  display: block;
+  transform: translateY(0.5px);
+}
 </style>
 </head>
 <body>
