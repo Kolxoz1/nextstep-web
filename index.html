@@ -349,6 +349,15 @@ addShoppingItem(name) {
     this.render();
 }
 
+addShoppingFromInput() {
+  const input = document.getElementById('shoppingInput');
+  if (!input) return;
+
+  const value = input.value;
+  this.addShoppingItem(value);
+  input.value = '';
+}
+
             changeLang(lang) {
                 this.lang = lang;
                 localStorage.setItem('lang', lang);
@@ -768,6 +777,10 @@ addShoppingItem(name) {
 }
 
 renderShopping() {
+  const total = this.shopping
+    .filter(item => !item.bought)
+    .reduce((sum, item) => sum + item.price, 0);
+
   return `
     <div class="card mt-4">
       <h3 class="text-sm font-medium text-gray-900 mb-3">
@@ -812,13 +825,24 @@ renderShopping() {
             </div>
           `).join('')
       }
+      <div class="border-t mt-4 pt-3 flex justify-between text-sm">
+        <span class="text-gray-500">Итого:</span>
+        <span class="font-semibold">${total} ₽</span>
+      </div>
+      <div class="mt-4 flex gap-2">
+  <input
+    id="shoppingInput"
+    placeholder="Добавить товар (например: хлеб)"
+    class="flex-1 px-3 py-2 border rounded-lg text-sm"
+    onkeydown="if(event.key==='Enter') app.addShoppingFromInput()"
+  />
 
-      <button
-        onclick="app.addShoppingItem('Молоко')"
-        class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl
-               bg-gray-900 text-white text-sm font-medium">
-        Добавить молоко
-      </button>
+  <button
+    onclick="app.addShoppingFromInput()"
+    class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm">
+    Добавить
+  </button>
+</div>
     </div>
   `;
 }
