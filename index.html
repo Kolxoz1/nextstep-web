@@ -481,13 +481,20 @@ body {
     </svg>
   </button>
 ` : ''}
-                    ${this.view === 'habits' ? `
-                        <div class="floating-btn" onclick="app.showAddHabitModal()">+</div>
-                    ` : ''}
-                    ${this.view === 'shopping' ? `
-                        <div class="floating-btn" onclick="app.showShoppingModal()">🛒</div>
-                    ` : ''}
-                `;
+                    ${['today', 'inbox', 'focus', 'habits'].includes(this.view) ? `
+  <button class="fab" onclick="
+    ${this.view === 'habits'
+      ? 'app.showAddHabitModal()'
+      : 'app.showAddTaskModal()'}
+  ">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14"
+        stroke="white"
+        stroke-width="2.5"
+        stroke-linecap="round"/>
+    </svg>
+  </button>
+` : ''}                `;
             }
 
             renderTasks(tasks) {
