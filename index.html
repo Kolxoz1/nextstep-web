@@ -555,9 +555,11 @@ body {
                 return this.habits.map(h => {
                     const isDone = h.lastDone === today;
                     return `
-                        <div class="glass-card rounded-3xl p-5 mb-4">
+                        <div class="card">
                             <div class="flex items-center gap-4">
-                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-4xl">
+                                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+  ${h.icon}
+</div>
                                     ${h.icon}
                                 </div>
                                 <div class="flex-1">
@@ -565,12 +567,12 @@ body {
                                     <p class="text-sm text-gray-500 mt-1">🔥 ${this.tr('streak')}: ${h.streak} ${this.tr('days')}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="app.checkHabit(${h.id})" 
-                                        class="px-5 py-3 rounded-2xl font-bold text-sm transition-all shadow-md ${
-                                            isDone ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-700' : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white active:shadow-sm'
-                                        }" ${isDone ? 'disabled' : ''}>
-                                        ✓
-                                    </button>
+                                    <button onclick="app.checkHabit(${h.id})"
+  class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer
+  ${isDone ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300'}"
+  ${isDone ? 'disabled' : ''}>
+  ✓
+</button>
                                     <button onclick="app.deleteHabit(${h.id})" class="text-red-400 hover:text-red-600 text-2xl font-bold px-2">×</button>
                                 </div>
                             </div>
