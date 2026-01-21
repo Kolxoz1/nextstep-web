@@ -133,6 +133,12 @@ body {
   background: #F5F6FA;
   border-radius: 18px;
 }
+.stats-wrap {
+  margin: 16px;
+  padding: 8px 0;
+  background: #F5F6FA;
+  border-radius: 18px;
+}
 </style>
 </head>
 <body>
@@ -606,27 +612,39 @@ body {
   }).join('');
 }
             renderStats(completed) {
-                return `
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        ${[
-                            { icon: '📋', label: this.tr('total'), value: this.tasks.length },
-                            { icon: '✅', label: this.tr('completed'), value: completed },
-                            { icon: '🎯', label: this.tr('habits'), value: this.habits.length },
-                            { icon: '🔥', label: 'Streak', value: Math.max(...this.habits.map(h => h.streak), 0) }
-                        ].map(s => `
-                            <div class="glass-card rounded-3xl p-5">
-                                <div class="text-4xl mb-3">${s.icon}</div>
-                                <p class="text-xs text-gray-600 mb-1 font-semibold">${s.label}</p>
-                                <p class="text-3xl font-bold gradient-text">${s.value}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="glass-card rounded-3xl p-5">
-                        <h3 class="font-bold text-xl text-gray-900 mb-3">📈 Прогресс</h3>
-                        <p class="text-sm text-gray-500 text-center py-8">Статистика появится после использования</p>
-                    </div>
-                `;
-            }
+  const stats = [
+    { icon: '📋', label: this.tr('total'), value: this.tasks.length },
+    { icon: '✅', label: this.tr('completed'), value: completed },
+    { icon: '🎯', label: this.tr('habits'), value: this.habits.length },
+    { icon: '🔥', label: 'Streak', value: Math.max(...this.habits.map(h => h.streak), 0) }
+  ];
+
+  return `
+    <div class="stats-wrap">
+      <div class="grid grid-cols-2 gap-3">
+        ${stats.map(s => `
+          <div class="card flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+              ${s.icon}
+            </div>
+
+            <div>
+              <p class="text-xs text-gray-500">${s.label}</p>
+              <p class="text-xl font-semibold text-gray-900">${s.value}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="card mt-4">
+        <h3 class="text-sm font-medium text-gray-900 mb-2">📈 Прогресс</h3>
+        <p class="text-sm text-gray-500 text-center py-8">
+          Статистика появится после использования
+        </p>
+      </div>
+    </div>
+  `;
+}
 
             renderSupport() {
                 return `
