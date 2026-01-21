@@ -145,6 +145,25 @@ body {
   background: #F5F6FA;
   border-radius: 18px;
 }
+/* =========================
+   HEADER — ЯКОРЬ
+   ========================= */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* card внутри header — НЕ карточка */
+.header.card {
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+}
 </style>
 </head>
 <body>
@@ -445,7 +464,7 @@ this.user = tgUser || {
                 const completed = this.tasks.filter(t => t.completed).length;
                 
                 document.getElementById('root').innerHTML = `
-                    <div class="bg-white card sticky top-0 z-50">
+                    <div class="header bg-white card sticky top-0 z-50">
   <div class="px-4 py-3">
     <div class="flex items-center gap-3">
   <!-- аватар -->
