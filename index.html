@@ -150,9 +150,11 @@ body {
 <body>
     <div id="root"></div>
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+const tgUser = tg.initDataUnsafe?.user;
 
         const params = new URLSearchParams(window.location.search);
         const planFromUrl = params.get('plan') || 'free';
@@ -183,6 +185,9 @@ body {
 
         class App {
             constructor() {
+this.user = tgUser || {
+  first_name: 'User'
+};
                 this.view = 'today';
                 this.plan = planFromUrl;
                 this.userId = userIdFromUrl;
@@ -440,8 +445,16 @@ body {
                 document.getElementById('root').innerHTML = `
                     <div class="bg-white card sticky top-0 z-50">
   <div class="px-4 py-3">
-    <h1 class="text-base font-semibold">
-      ${this.tr(this.view)}
+    <div class="flex items-center gap-3">
+  <!-- аватар -->
+  <div class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-semibold">
+    ${this.user.first_name.charAt(0)}
+  </div>
+
+  <!-- имя + дата -->
+  <div>
+    <h1 class="text-base font-semibold text-gray-900">
+      ${this.user.first_name}
     </h1>
     <p class="text-xs text-muted">
       ${new Date().toLocaleDateString('ru-RU', {
@@ -450,6 +463,8 @@ body {
         month: 'long'
       })}
     </p>
+  </div>
+</div>
 
     <div class="flex gap-2 mt-3 overflow-x-auto">
       ${['today','inbox','focus','review','habits','shopping','stats','support','subscription','settings'].map(v => `
@@ -483,16 +498,6 @@ body {
                         </div>
                     </div>
 
-                    ${['today', 'inbox', 'focus'].includes(this.view) ? `
-  <button class="fab" onclick="app.showAddTaskModal()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M12 5v14M5 12h14"
-        stroke="white"
-        stroke-width="2.5"
-        stroke-linecap="round"/>
-    </svg>
-  </button>
-` : ''}
                     ${['today', 'inbox', 'focus', 'habits'].includes(this.view) ? `
   <button class="fab" onclick="
     ${this.view === 'habits'
