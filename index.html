@@ -338,11 +338,12 @@ addShoppingItem(name) {
     if (!name.trim()) return;
 
     const item = {
-        id: Date.now(),
-        name: name.trim(),
-        bought: false,
-        price: estimatePrice(name)
-    };
+  id: Date.now(),
+  name: name.trim(),
+  bought: false,
+  price: estimatePrice(name),
+  category: 'products'
+};
 
     this.shopping.push(item);
     localStorage.setItem('shopping', JSON.stringify(this.shopping));
@@ -455,7 +456,7 @@ addShoppingFromInput() {
                     <div class="modal-content">
                         <h3 class="text-2xl font-bold mb-6 gradient-text">🛒 ${this.tr('shoppingList')}</h3>
                         <p class="text-sm text-gray-600 mb-3">Введите товары (каждый с новой строки):</p>
-                        <textarea id="shoppingInput" placeholder="Хлеб\nМолоко\nЯйца\nМасло\n..." 
+                        <textarea id="shoppingModalInput" placeholder="Хлеб\nМолоко\nЯйца\nМасло\n..." 
                             class="w-full p-4 border-2 border-purple-200 rounded-2xl mb-4 text-base h-48 focus:outline-none focus:border-purple-500 resize-none transition-all"></textarea>
                         <button onclick="app.estimateShopping()" 
                             class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold mb-3 shadow-lg active:shadow-md transform active:scale-95 transition-all">
@@ -789,26 +790,40 @@ renderShopping() {
 
       ${
         this.shopping.length === 0
-          ? `<p class="text-sm text-gray-500">Список пуст</p>`
-          : this.shopping.map(item => `
+  ? `
+    <div class="py-8 flex flex-col items-center text-center">
+      <div class="text-4xl mb-3">🛒</div>
+      <p class="text-sm text-gray-700 font-medium">
+        Список покупок пуст
+      </p>
+      <p class="text-sm text-gray-400 mt-1">
+        Добавьте первый товар ниже
+      </p>
+    </div>
+  `
+  : this.shopping.map(item => `
             <div class="flex items-center gap-3 mb-2">
 
               <!-- чекбокс -->
               <button
                 onclick="app.toggleShoppingItem(${item.id})"
-                class="w-5 h-5 rounded border flex items-center justify-center
-                ${item.bought
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'border-gray-300'}">
+                class="w-5 h-5 rounded border flex items-center justify-center transition-all duration-200
+${item.bought ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300'}">
                 ${item.bought ? '✓' : ''}
               </button>
 
               <!-- название -->
-              <span class="flex-1 text-sm ${
-                item.bought ? 'line-through text-gray-400' : 'text-gray-900'
-              }">
-                ${item.name}
-              </span>
+              <div class="flex-1">
+  <span class="text-sm ${
+    item.bought ? 'line-through text-gray-400' : 'text-gray-900'
+  }">
+    ${item.name}
+  </span>
+
+  <div class="text-xs text-gray-400">
+    ${item.category === 'products' ? '🥦 Продукты' : '🧻 Быт'}
+  </div>
+</div>
 
               <!-- цена -->
               <span class="text-sm text-gray-500">
