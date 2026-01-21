@@ -533,6 +533,27 @@ this.user = tgUser || {
 ` :
                               this.view === 'shopping' ? this.renderShopping() :
                               this.view === 'support' ? this.renderSupport() :
+                              renderShopping() {
+  return `
+    <div class="card mt-4">
+      <h3 class="text-sm font-medium text-gray-900 mb-2">
+        🛒 Покупки
+      </h3>
+
+      <p class="text-sm text-gray-500 mb-4">
+        Добавьте список покупок — мы поможем рассчитать стоимость.
+      </p>
+
+      <button
+        onclick="app.showShoppingModal()"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+               bg-gray-900 text-white text-sm font-medium
+               hover:bg-gray-800 transition">
+        Добавить список
+      </button>
+    </div>
+  `;
+}
                               this.renderTasks(tasks)}
                         </div>
                     </div>
