@@ -207,6 +207,28 @@ const tgUser = tg.initDataUnsafe?.user;
             }
         };
 
+// =========================
+// Простейший словарь цен
+// =========================
+
+const PRICE_MAP = {
+  молоко: 80,
+  хлеб: 50,
+  яйца: 120,
+  сыр: 250,
+  масло: 180,
+  курица: 320,
+  яблоки: 120,
+  бананы: 110,
+  рис: 90,
+  макароны: 70
+};
+function estimatePrice(name) {
+  if (!name) return 0;
+
+  const key = name.trim().toLowerCase();
+  return PRICE_MAP[key] || 0;
+}
         class App {
             constructor() {
 this.user = tgUser || {
@@ -217,6 +239,7 @@ this.user = tgUser || {
                 this.userId = userIdFromUrl;
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                 this.habits = JSON.parse(localStorage.getItem('habits') || '[]');
+                this.shopping = JSON.parse(localStorage.getItem('shopping') || '[]');
                 this.lang = localStorage.getItem('lang') || 'ru';
                 this.theme = localStorage.getItem('theme') || 'light';
                 this.init();
@@ -310,6 +333,21 @@ this.user = tgUser || {
                 localStorage.setItem('habits', JSON.stringify(this.habits));
                 this.render();
             }
+
+addShoppingItem(name) {
+    if (!name.trim()) return;
+
+    const item = {
+        id: Date.now(),
+        name: name.trim(),
+        bought: false,
+        price: estimatePrice(name)
+    };
+
+    this.shopping.push(item);
+    localStorage.setItem('shopping', JSON.stringify(this.shopping));
+    this.render();
+}
 
             changeLang(lang) {
                 this.lang = lang;
@@ -741,7 +779,7 @@ renderShopping() {
       </p>
 
       <button
-        onclick="app.showShoppingModal()"
+        onclick="app.addShoppingItem('Молоко')"
         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
                bg-gray-900 text-white text-sm font-medium
                hover:bg-gray-800 transition">
