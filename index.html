@@ -111,6 +111,15 @@ body {
   display: block;
   transform: translateY(0.5px);
 }
+/* hover только для устройств с мышью */
+@media (hover: hover) {
+  .card:hover {
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.06),
+      0 10px 24px rgba(0,0,0,0.10);
+    transform: translateY(-1px);
+  }
+}
 </style>
 </head>
 <body>
@@ -480,11 +489,8 @@ body {
 
                 <!-- чекбокс -->
                 <button onclick="app.toggleTask(${t.id})"
-  class="w-5 h-5 mt-1 rounded-full border flex items-center justify-center transition
-${t.completed
-  ? 'bg-gray-900 border-gray-900 text-white'
-  : 'border-gray-300 hover:border-gray-400'
-}">
+  class="w-5 h-5 mt-1 rounded-full border flex items-center justify-center transition cursor-pointer
+  ${t.completed ? 'bg-gray-900 border-gray-900 text-white' : 'border-gray-300 hover:border-gray-400'}">
   ${t.completed ? '✓' : ''}
 </button>
 
