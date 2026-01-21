@@ -196,6 +196,8 @@ this.user = tgUser || {
                 this.lang = localStorage.getItem('lang') || 'ru';
                 this.theme = localStorage.getItem('theme') || 'light';
                 this.init();
+                this.plan = localStorage.getItem('plan') || 'FREE';
+
             }
 
             tr(key) { return t[this.lang]?.[key] || key; }
@@ -453,9 +455,18 @@ this.user = tgUser || {
 
   <!-- имя + дата -->
   <div>
-    <h1 class="text-base font-semibold text-gray-900">
-      ${this.user.first_name}
-    </h1>
+    <div class="flex items-center gap-2">
+  <h1 class="text-base font-semibold text-gray-900">
+    ${this.user.first_name}
+  </h1>
+
+  <span class="text-[10px] px-2 py-0.5 rounded-full
+    ${this.plan === 'PREMIUM'
+      ? 'bg-yellow-100 text-yellow-700'
+      : 'bg-gray-100 text-gray-600'}">
+    ${this.plan}
+  </span>
+</div>
     <p class="text-xs text-muted">
       ${new Date().toLocaleDateString('ru-RU', {
         weekday: 'long',
