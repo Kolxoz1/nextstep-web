@@ -73,11 +73,15 @@ body {
   box-shadow:
     0 1px 2px rgba(0,0,0,0.04),
     0 6px 16px rgba(0,0,0,0.06);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 /* при нажатии — ощущение кнопки */
 .card:active {
-  transform: scale(0.99);
+  transform: scale(0.985);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 3px 8px rgba(0,0,0,0.08);
 }
 </style>
 </head>
@@ -441,17 +445,17 @@ body {
 
                 <!-- чекбокс -->
                 <button onclick="app.toggleTask(${t.id})"
-  class="w-5 h-5 mt-1 rounded-full border flex items-center justify-center transition ${
-    t.completed
-      ? 'bg-gray-900 border-gray-900'
-      : 'border-gray-300 hover:border-gray-400'
-  }">
+  class="w-5 h-5 mt-1 rounded-full border flex items-center justify-center transition
+${t.completed
+  ? 'bg-gray-900 border-gray-900 text-white'
+  : 'border-gray-300 hover:border-gray-400'
+}">
   ${t.completed ? '✓' : ''}
 </button>
 
                 <!-- текст -->
                 <div class="flex-1">
-                    <p class="text-[15px] leading-snug ${
+                    <p class="text-[15px] leading-snug font-medium ${
   t.completed ? 'line-through text-gray-400' : 'text-gray-900'
 }">
                         ${t.text}
