@@ -770,20 +770,31 @@ addShoppingItem(name) {
 renderShopping() {
   return `
     <div class="card mt-4">
-      <h3 class="text-sm font-medium text-gray-900 mb-2">
-        🛒 Покупки
+      <h3 class="text-sm font-medium text-gray-900 mb-3">
+        🛒 Список покупок
       </h3>
 
-      <p class="text-sm text-gray-500 mb-4">
-        Добавьте список покупок — мы поможем рассчитать стоимость.
-      </p>
+      ${
+        this.shopping.length === 0
+          ? `<p class="text-sm text-gray-500">Список пуст</p>`
+          : this.shopping.map(item => `
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-sm text-gray-900">
+                ${item.name}
+              </span>
+
+              <span class="ml-auto text-sm text-gray-500">
+                ${item.price} ₽
+              </span>
+            </div>
+          `).join('')
+      }
 
       <button
         onclick="app.addShoppingItem('Молоко')"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-               bg-gray-900 text-white text-sm font-medium
-               hover:bg-gray-800 transition">
-        Добавить список
+        class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl
+               bg-gray-900 text-white text-sm font-medium">
+        Добавить молоко
       </button>
     </div>
   `;
