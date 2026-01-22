@@ -428,6 +428,32 @@ this.user = tgUser || {
                 this.render();
             }
 
+getRemainingDays() {
+  if (!this.trialEndsAt) return null;
+
+  const now = Date.now();
+  const diff = Number(this.trialEndsAt) - now;
+
+  if (diff <= 0) return 0;
+
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+getSubscriptionStatusText() {
+  if (this.plan === 'free') return '';
+
+  // trial
+  if (this.trialEndsAt) {
+    const days = this.getRemainingDays();
+
+    if (days === 0) return '⏳ последний день';
+    if (days === 1) return '⏳ остался 1 день';
+    if (days > 1) return `⏳ осталось ${days} дня`;
+  }
+
+  // платная подписка (пока без даты)
+  return '';
+}
             addTask(text, priority = 'medium') {
                 if (!text.trim()) return;
                 this.tasks.unshift({
@@ -847,6 +873,9 @@ startTrial() {
     ? 'bg-purple-100 text-purple-700'
     : 'bg-gray-100 text-gray-600'}">
   ${SUBSCRIPTIONS[this.plan]?.name || '✨ Free Start'}
+  ${this.getSubscriptionStatusText()
+    ? ` · ${this.getSubscriptionStatusText()}`
+    : ''}
 </span>
 </div>
     <p class="text-xs text-muted">
