@@ -212,22 +212,99 @@ const tgUser = tg.initDataUnsafe?.user;
 // =========================
 
 const PRICE_MAP = {
+  // молочка
   молоко: 80,
-  хлеб: 50,
-  яйца: 120,
   сыр: 250,
   масло: 180,
-  курица: 320,
+  йогурт: 70,
+  сметана: 90,
+  творог: 120,
+
+  // хлеб и бакалея
+  хлеб: 50,
+  батон: 45,
+  рис: 90,
+  гречка: 110,
+  макароны: 70,
+  мука: 60,
+  сахар: 75,
+  соль: 20,
+
+  // овощи
+  картофель: 40,
+  картошка: 40,
+  помидоры: 150,
+  огурцы: 130,
+  лук: 35,
+  морковь: 45,
+  капуста: 50,
+
+  // фрукты
   яблоки: 120,
   бананы: 110,
-  рис: 90,
-  макароны: 70
+  апельсины: 140,
+  груши: 160,
+
+  // мясо и рыба
+  курица: 320,
+  говядина: 650,
+  свинина: 480,
+  фарш: 420,
+  рыба: 500,
+
+  // напитки
+  вода: 40,
+  сок: 120,
+  чай: 180,
+  кофе: 350,
+
+  // прочее
+  яйца: 120,
+  колбаса: 300,
+  сосиски: 260,
+  пельмени: 400
 };
+// =========================
+// Словарь категорий
+// =========================
+
+const CATEGORY_MAP = {
+  products: [
+    'молоко','сыр','хлеб','яблоки','бананы','курица','рыба',
+    'яйца','овощи','фрукты','картофель','рис','макароны',
+    'помидоры','огурцы','лук','морковь','капуста',
+    'кофе','чай','сахар','соль'
+  ],
+  household: [
+    'туалетная','бумага','порошок','шампунь','мыло',
+    'губка','салфетки','моющее','чистящее'
+  ]
+};
+function detectCategory(name) {
+  if (!name) return 'products';
+
+  const text = name.toLowerCase();
+
+  for (const category in CATEGORY_MAP) {
+    if (CATEGORY_MAP[category].some(word => text.includes(word))) {
+      return category;
+    }
+  }
+
+  return 'products';
+}
 function estimatePrice(name) {
   if (!name) return 0;
 
-  const key = name.trim().toLowerCase();
-  return PRICE_MAP[key] || 0;
+  const text = name.toLowerCase();
+
+  for (const key in PRICE_MAP) {
+    if (text.includes(key)) {
+      return PRICE_MAP[key];
+    }
+  }
+
+  return 0;
 }
         class App {
             constructor() {
@@ -335,19 +412,24 @@ this.user = tgUser || {
             }
 
 addShoppingItem(name) {
-    if (!name.trim()) return;
+  if (!name.trim()) return;
 
-    const item = {
-  id: Date.now(),
-  name: name.trim(),
-  bought: false,
-  price: estimatePrice(name),
-  category: 'products'
-};
+  const qtyMatch = name.match(/x(\d+)/i);
+  const qty = qtyMatch ? Number(qtyMatch[1]) : 1;
+  const basePrice = estimatePrice(name);
 
-    this.shopping.push(item);
-    localStorage.setItem('shopping', JSON.stringify(this.shopping));
-    this.render();
+  const item = {
+    id: Date.now(),
+    name: name.trim(),
+    bought: false,
+    price: basePrice * qty,
+    quantity: qty,
+    category: detectCategory(name)
+  };
+
+  this.shopping.push(item);
+  localStorage.setItem('shopping', JSON.stringify(this.shopping));
+  this.render();
 }
 
 addShoppingFromInput() {
@@ -469,11 +551,11 @@ addShoppingFromInput() {
                     </div>
                 `;
                 document.body.appendChild(modal);
-                setTimeout(() => document.getElementById('shoppingInput')?.focus(), 100);
+                setTimeout(() => document.getElementById('shoppingModalInput')?.focus(), 100);
             }
 
             estimateShopping() {
-                const input = document.getElementById('shoppingInput');
+                const input = document.getElementById('shoppingModalInput');
                 if (input?.value.trim()) {
                     try {
                         tg.sendData(JSON.stringify({
