@@ -403,6 +403,7 @@ this.user = tgUser || {
 };
                 this.view = 'today';
                 this.trialUsed = localStorage.getItem('trialUsed') === 'true';
+                this.headerMenuOpen = false;
                 this.trialEndsAt = localStorage.getItem('trialEndsAt');
                 this.userId = userIdFromUrl;
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
@@ -416,12 +417,47 @@ this.user = tgUser || {
 
             }
 
+toggleHeaderMenu() {
+  this.headerMenuOpen = !this.headerMenuOpen;
+  this.render();
+}
+
             tr(key) { return t[this.lang]?.[key] || key; }
 
             init() {
                 if (this.theme === 'dark') document.body.classList.add('dark-theme');
                 this.render();
             }
+
+renderHeaderMenu() {
+  if (!this.headerMenuOpen) return '';
+
+  return `
+    <div class="absolute right-4 top-[64px]
+                w-48 bg-white border border-gray-200
+                rounded-xl shadow-lg z-50">
+
+<button
+  onclick="app.setView('support'); app.toggleHeaderMenu()"
+  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+  💬 Помощь
+</button>
+
+<button
+  onclick="app.setView('subscription'); app.toggleHeaderMenu()"
+  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+  ⭐ Подписка
+</button>
+
+<button
+  onclick="app.setView('settings'); app.toggleHeaderMenu()"
+  class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+  ⚙️ Настройки
+</button>
+
+    </div>
+  `;
+}
 
             setView(v) {
                 this.view = v;
@@ -906,11 +942,12 @@ startTrial() {
 
   <!-- КНОПКА ТРОЕТОЧИЯ -->
   <button
-    class="w-8 h-8 rounded-lg
-           flex items-center justify-center
-           text-gray-500 border border-gray-200">
-    ⋯
-  </button>
+  onclick="app.toggleHeaderMenu()"
+  class="w-8 h-8 rounded-lg
+         flex items-center justify-center
+         text-gray-500 border border-gray-200">
+  ⋯
+</button>
 </div>
 
                         <!-- Контент -->
