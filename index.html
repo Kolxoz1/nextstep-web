@@ -392,6 +392,7 @@ this.user = tgUser || {
                 this.headerMenuOpen = false;
                 this.trialEndsAt = localStorage.getItem('trialEndsAt');
                 this.userId = userIdFromUrl;
+                this.isAdmin = localStorage.getItem('isAdmin') === 'true';
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                 this.habits = JSON.parse(localStorage.getItem('habits') || '[]');
                 this.shopping = JSON.parse(localStorage.getItem('shopping') || '[]');
@@ -440,6 +441,17 @@ renderHeaderMenu() {
   class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
   ⚙️ Настройки
 </button>
+
+${this.isAdmin ? `
+  <div class="border-t my-1"></div>
+
+  <button
+    onclick="app.setView('admin'); app.toggleHeaderMenu()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-purple-700 hover:bg-purple-50">
+    🛠 Админ-панель
+  </button>
+` : ''}
 
     </div>
   `;
@@ -941,6 +953,7 @@ ${this.renderHeaderMenu()}
                         <!-- Контент -->
                         <div class="px-4">
                             ${this.view === 'stats' ? this.renderStats(completed) : 
+                              this.view === 'admin' ? this.renderAdmin() :
                               this.view === 'settings' ? this.renderSettings() :
                               this.view === 'subscription' ? this.renderSubscription() :
                               this.view === 'habits' ? `
@@ -1152,6 +1165,22 @@ ${this.renderHeaderMenu()}
         </p>
       </div>
 
+    </div>
+  `;
+}
+
+renderAdmin() {
+  return `
+    <div class="px-4 mt-4">
+      <div class="card">
+        <h3 class="text-sm font-medium mb-2">
+          🛠 Админ-панель
+        </h3>
+
+        <p class="text-sm text-gray-500">
+          Здесь будет статистика пользователей и управление подписками.
+        </p>
+      </div>
     </div>
   `;
 }
