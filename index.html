@@ -169,6 +169,18 @@ body {
     background: rgba(0, 0, 0, 0.04);
   }
 }
+/* =========================
+   Subscription — Active plan
+   ========================= */
+
+.is-active {
+  border-color: #111827;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.is-active .font-medium {
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -1212,7 +1224,7 @@ renderSettings() {
       <!-- Тарифы -->
       <div class="space-y-4">
         ${Object.values(SUBSCRIPTIONS).map(sub => `
-          <div class="border rounded-lg p-4">
+          <div class="border rounded-lg p-4 ${this.plan === sub.id ? 'is-active' : ''}">
             <div class="flex justify-between items-center mb-2">
               <div class="font-medium">${sub.name}</div>
               <div class="text-sm font-semibold">
