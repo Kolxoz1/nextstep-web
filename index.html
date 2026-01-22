@@ -445,6 +445,7 @@ getSubscriptionStatusText() {
   // trial
   if (this.trialEndsAt) {
     const days = this.getRemainingDays();
+    if (days === null) return '';
 
     if (days === 0) return '⏳ последний день';
     if (days === 1) return '⏳ остался 1 день';
@@ -888,20 +889,28 @@ startTrial() {
   </div>
 </div>
 
-    <div class="tabs flex gap-2 mt-3 overflow-x-auto">
-      ${['today','inbox','focus','review','habits','shopping','stats','support','subscription','settings'].map(v => `
-        <button
-          onclick="app.setView('${v}')"
-          class="px-3 py-1.5 text-sm rounded-md transition-all duration-200 ${
-            this.view === v
-              ? 'bg-gray-900 text-white shadow-sm scale-[1.03]'
-              : 'text-gray-600'
-          }">
-          ${this.tr(v)}
-        </button>
-      `).join('')}
-    </div>
+    <div class="flex items-center gap-2 mt-3">
+  <div class="tabs flex gap-2 overflow-x-auto flex-1">
+    ${['today','inbox','focus','review','habits','shopping','stats'].map(v => `
+      <button
+        onclick="app.setView('${v}')"
+        class="px-3 py-1.5 text-sm rounded-md transition-all duration-200 ${
+          this.view === v
+            ? 'bg-gray-900 text-white shadow-sm scale-[1.03]'
+            : 'text-gray-600'
+        }">
+        ${this.tr(v)}
+      </button>
+    `).join('')}
   </div>
+
+  <!-- КНОПКА ТРОЕТОЧИЯ -->
+  <button
+    class="w-8 h-8 rounded-lg
+           flex items-center justify-center
+           text-gray-500 border border-gray-200">
+    ⋯
+  </button>
 </div>
 
                         <!-- Контент -->
