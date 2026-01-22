@@ -34,20 +34,6 @@ body {
   color: var(--muted);
 }
 
-/* кнопка + */
-.floating-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: #6C63FF;
-  color: white;
-  font-size: 26px;
-  box-shadow: 0 10px 25px rgba(108,99,255,.35);
-}
-
 /* модальные окна */
 .modal-backdrop {
   position: fixed;
@@ -950,6 +936,8 @@ startTrial() {
 </button>
 </div>
 
+${this.renderHeaderMenu()}
+
                         <!-- Контент -->
                         <div class="px-4">
                             ${this.view === 'stats' ? this.renderStats(completed) : 
@@ -1096,16 +1084,18 @@ startTrial() {
 
             renderStats(completed) {
 
-  // 🔒 Free — только заглушка
+  // 🔒 Free — заглушка
   if (this.plan === 'free') {
     return `
       <div class="stats-wrap">
-        ...
+        <div class="card text-center py-10 text-gray-500">
+          📊 Статистика доступна в Premium Plus
+        </div>
       </div>
     `;
   }
 
-  // ✅ Premium / Pro — реальная статистика
+  // ⭐ Premium / Pro — реальные данные
   const stats = [
     { icon: '📋', label: this.tr('total'), value: this.tasks.length },
     { icon: '✅', label: this.tr('completed'), value: completed },
@@ -1115,7 +1105,19 @@ startTrial() {
 
   return `
     <div class="stats-wrap">
-      ...
+      <div class="grid grid-cols-2 gap-3 px-2">
+        ${stats.map(s => `
+          <div class="card flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+              ${s.icon}
+            </div>
+            <div>
+              <p class="text-xs text-gray-500">${s.label}</p>
+              <p class="text-xl font-semibold text-gray-900">${s.value}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 } // ← ← ← ВОТ ЭТА СКОБКА ОБЯЗАТЕЛЬНА
