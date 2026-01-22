@@ -181,6 +181,7 @@ const tgUser = tg.initDataUnsafe?.user;
         const params = new URLSearchParams(window.location.search);
         const planFromUrl = params.get('plan') || 'free';
         const userIdFromUrl = params.get('user_id') || '';
+        const isAdminFromUrl = params.get('is_admin') === '1';
 
         const t = {
             ru: {
@@ -392,7 +393,7 @@ this.user = tgUser || {
                 this.headerMenuOpen = false;
                 this.trialEndsAt = localStorage.getItem('trialEndsAt');
                 this.userId = userIdFromUrl;
-                this.isAdmin = localStorage.getItem('isAdmin') === 'true';
+                this.isAdmin = isAdminFromUrl;
                 this.tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
                 this.habits = JSON.parse(localStorage.getItem('habits') || '[]');
                 this.shopping = JSON.parse(localStorage.getItem('shopping') || '[]');
@@ -421,8 +422,8 @@ renderHeaderMenu() {
 
   return `
     <div class="absolute right-4 top-[64px]
-                w-48 bg-white border border-gray-200
-                rounded-xl shadow-lg z-50">
+            w-48 bg-white border border-gray-200
+            rounded-xl shadow-lg z-[100]">
 
 <button
   onclick="app.setView('support'); app.toggleHeaderMenu()"
