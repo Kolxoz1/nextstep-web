@@ -300,6 +300,9 @@ const PRICE_MAP = {
   вафли: 80,
   торт: 600
 };
+
+const SUGGESTIONS = Object.keys(PRICE_MAP);
+
 // =========================
 // Словарь категорий
 // =========================
@@ -452,16 +455,21 @@ addShoppingItem(name) {
 
   const qtyMatch = name.match(/x(\d+)/i);
   const qty = qtyMatch ? Number(qtyMatch[1]) : 1;
+
+  const unitMatch = name.match(/(кг|л|шт)/i);
+  const unit = unitMatch ? unitMatch[1] : 'шт';
+
   const basePrice = estimatePrice(name);
 
   const item = {
-    id: Date.now(),
-    name: name.trim(),
-    bought: false,
-    price: basePrice * qty,
-    quantity: qty,
-    category: detectCategory(name)
-  };
+  id: Date.now(),
+  name: name.trim(),
+  bought: false,
+  price: basePrice * qty,
+  quantity: qty,
+  unit: unit,            // ← ВОТ ЭТА СТРОКА
+  category: detectCategory(name)
+};
 
   this.shopping.push(item);
   localStorage.setItem('shopping', JSON.stringify(this.shopping));
@@ -475,6 +483,68 @@ addShoppingFromInput() {
   const value = input.value;
   this.addShoppingItem(value);
   input.value = '';
+}
+
+increaseQuantity(id) {
+  const item = this.shopping.find(i => i.id === id);
+  if (!item) return;
+
+  item.quantity += 1;
+  item.price = estimatePrice(item.name) * item.quantity;
+
+  localStorage.setItem('shopping', JSON.stringify(this.shopping));
+  this.render();
+}
+
+decreaseQuantity(id) {
+  const item = this.shopping.find(i => i.id === id);
+  if (!item || item.quantity <= 1) return;
+
+  item.quantity -= 1;
+  item.price = estimatePrice(item.name) * item.quantity;
+
+  localStorage.setItem('shopping', JSON.stringify(this.shopping));
+  this.render();
+}
+
+showSuggestions() {
+  const input = document.getElementById('shoppingInput');
+  const box = document.getElementById('suggestions');
+  if (!input || !box) return;
+
+  const value = input.value.toLowerCase().trim();
+
+  if (!value) {
+    box.innerHTML = '';
+    return;
+  }
+
+  const matches = SUGGESTIONS
+    .filter(word => word.includes(value))
+    .slice(0, 6);
+
+  if (matches.length === 0) {
+    box.innerHTML = '';
+    return;
+  }
+
+  box.innerHTML = matches.map(word => `
+    <div
+      onclick="app.selectSuggestion('${word}')"
+      class="px-3 py-2 cursor-pointer hover:bg-gray-100">
+      ${word}
+    </div>
+  `).join('');
+}
+
+selectSuggestion(word) {
+  const input = document.getElementById('shoppingInput');
+  const box = document.getElementById('suggestions');
+  if (!input || !box) return;
+
+  input.value = word;
+  box.innerHTML = '';
+  input.focus();
 }
 
             changeLang(lang) {
@@ -932,12 +1002,27 @@ ${item.bought ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300'}">
 
               <!-- название -->
               <div class="flex-1">
+  <div class="flex items-center gap-2">
+
+  <button
+    onclick="app.decreaseQuantity(${item.id})"
+    class="w-6 h-6 rounded border text-sm flex items-center justify-center">
+    −
+  </button>
+
   <span class="text-sm ${
-  item.bought ? 'line-through text-gray-400' : 'text-gray-900'
-}">
-  ${item.name}
-  ${item.quantity > 1 ? `×${item.quantity}` : ''}
-</span>
+    item.bought ? 'line-through text-gray-400' : 'text-gray-900'
+  }">
+    ${item.name} ×${item.quantity} ${item.unit}
+  </span>
+
+  <button
+    onclick="app.increaseQuantity(${item.id})"
+    class="w-6 h-6 rounded border text-sm flex items-center justify-center">
+    +
+  </button>
+
+</div>
 
   <div class="text-xs text-gray-400">
     ${item.category === 'products' ? '🥦 Продукты' : '🧻 Быт'}
@@ -965,11 +1050,12 @@ ${item.bought ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300'}">
       </div>
       <div class="mt-4 flex gap-2">
   <input
-    id="shoppingInput"
-    placeholder="Добавить товар (например: хлеб)"
-    class="flex-1 px-3 py-2 border rounded-lg text-sm"
-    onkeydown="if(event.key==='Enter') app.addShoppingFromInput()"
-  />
+  id="shoppingInput"
+  placeholder="Добавить товар (например: хлеб)"
+  class="flex-1 px-3 py-2 border rounded-lg text-sm"
+  oninput="app.showSuggestions()"
+  onkeydown="if(event.key==='Enter') app.addShoppingFromInput()"
+/>
 
   <button
     onclick="app.addShoppingFromInput()"
@@ -977,6 +1063,10 @@ ${item.bought ? 'bg-gray-900 text-white border-gray-900' : 'border-gray-300'}">
     Добавить
   </button>
 </div>
+<div
+  id="suggestions"
+  class="mt-2 bg-white border rounded-lg shadow-sm text-sm overflow-hidden"
+></div>
     </div>
   `;
 }
